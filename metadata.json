@@ -1,0 +1,6 @@
+{
+  "name": "DataNexus - KP Enterprise Ecommerce & Analytics Operating Suite",
+  "description": "Full-stack enterprise website for DataNexus & KP Nexus: Ecommerce HyperScale OS, Profit Optimizer, ML Studio, RTO Predictor, and Autonomous BI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

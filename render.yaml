@@ -1,0 +1,112 @@
+# ==============================================================================
+# DATANEXUS ENTERPRISE OPERATIONAL OS - RENDER DEPLOYMENT BLUEPRINT
+# ==============================================================================
+# Live Cloud Infrastructure Specification (Render Web Service)
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: datanexus-enterprise-os
+    env: node
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+      # 1. Supabase
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+
+      # 2. Google Gemini AI Dual Engines
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY_2
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_CHAT_KEY
+        sync: false
+      - key: GEMINI_CHAT_KEY_2
+        sync: false
+      - key: GEMINI_CHAT_MODEL
+        value: gemini-2.5-flash
+      - key: GEMINI_CALLS_KEY
+        sync: false
+      - key: GEMINI_CALLS_KEY_2
+        sync: false
+      - key: GEMINI_CALLS_MODEL
+        value: gemini-2.5-flash
+
+      # 3. Meta WhatsApp Cloud API (v21.0)
+      - key: META_WHATSAPP_TOKEN
+        sync: false
+      - key: META_PHONE_NUMBER_ID
+        sync: false
+      - key: META_WABA_ID
+        sync: false
+      - key: WHATSAPP_API_VERSION
+        value: v21.0
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: FOUNDER_WHATSAPP_PHONE
+        sync: false
+      - key: META_SENDER_TEST_NUMBER
+        sync: false
+
+      # 4. Security & Cryptography
+      - key: ENCRYPTION_KEY
+        sync: false
+
+      # 5. Razorpay Payments
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      # 6. Shiprocket & Logistics
+      - key: SHIPROCKET_EMAIL
+        sync: false
+      - key: SHIPROCKET_PASSWORD
+        sync: false
+      - key: SHIPROCKET_API_TOKEN
+        sync: false
+      - key: DELHIVERY_API_KEY
+        sync: false
+
+      # 7. E-Commerce Storefronts
+      - key: SHOPIFY_STORE_DOMAIN
+        sync: false
+      - key: SHOPIFY_ACCESS_TOKEN
+        sync: false
+      - key: SHOPIFY_CLIENT_SECRET
+        sync: false
+      - key: WOOCOMMERCE_STORE_URL
+        sync: false
+      - key: WOOCOMMERCE_CONSUMER_KEY
+        sync: false
+      - key: WOOCOMMERCE_CONSUMER_SECRET
+        sync: false
+
+      # 8. Firebase
+      - key: FIREBASE_PROJECT_ID
+        sync: false

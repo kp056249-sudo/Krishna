@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Shared Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // User Role Lookup
+    function getUserRole(companyId) {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+    
+    function isOwner(companyId) { return isSignedIn() && getUserRole(companyId) == 'owner'; }
+    function isAdmin(companyId) { return isSignedIn() && (getUserRole(companyId) == 'admin' || getUserRole(companyId) == 'owner'); }
+    function isAnalyst(companyId) { return isSignedIn() && (getUserRole(companyId) == 'analyst' || getUserRole(companyId) == 'admin' || getUserRole(companyId) == 'owner'); }
+    function isViewer(companyId) { return isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.companyId == companyId; }
+
+    // User Profile
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin(resource.data.companyId));
+      allow create: if isSignedIn() && request.auth.uid == userId && incoming().role == 'owner';
+      allow update: if isSignedIn() && request.auth.uid == userId && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'email', 'updatedAt']);
+    }
+
+    // Company Scoped Collections
+    match /companies/{companyId} {
+      allow read: if isViewer(companyId);
+      allow create: if isSignedIn() && isValidId(companyId);
+      allow update: if isAdmin(companyId);
+
+      // Scoped Sub-collections
+      match /stores/{storeId} {
+        allow read: if isViewer(companyId);
+        allow write: if isAdmin(companyId);
+      }
+      
+      match /orders/{orderId} {
+        allow read: if isViewer(companyId);
+        allow write: if isAnalyst(companyId);
+      }
+      
+      match /inventory/{sku} {
+        allow read: if isViewer(companyId);
+        allow write: if isAnalyst(companyId);
+      }
+      
+      match /abandonedCarts/{cartId} {
+        allow read: if isViewer(companyId);
+        allow write: if isAnalyst(companyId);
+      }
+      
+      match /adAccounts/{accountId} {
+        allow read: if isViewer(companyId);
+        allow write: if isAdmin(companyId);
+      }
+      
+      match /integrations/{integrationId} {
+        allow read: if isAdmin(companyId);
+        allow write: if isAdmin(companyId);
+      }
+      
+      match /auditLogs/{logId} {
+        allow read: if isViewer(companyId);
+        allow create: if isSignedIn(); // Logged from server mostly
+      }
+      
+      match /autopilotRules/{ruleId} {
+        allow read: if isViewer(companyId);
+        allow write: if isAdmin(companyId);
+      }
+      
+      match /messages/{messageId} {
+        allow read: if isViewer(companyId);
+        allow create: if isAnalyst(companyId);
+      }
+    }
+  }
+}
