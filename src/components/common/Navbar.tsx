@@ -20,7 +20,8 @@ import {
   Moon,
   Palette,
   Check,
-  MoreVertical
+  MoreVertical,
+  Send
 } from 'lucide-react';
 import { StoreAccount } from '../../types';
 import { useAuthCompany } from '../../context/AuthCompanyContext';
@@ -160,6 +161,16 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right: Controls & Actions */}
         <div className="flex items-center gap-2 lg:gap-3">
+          {/* Telegram Support Bot Launch */}
+          <button
+            onClick={() => onSelectTab('telegram')}
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-600/20 to-blue-600/20 hover:from-sky-600/30 hover:to-blue-600/30 border border-sky-500/40 text-sky-300 text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
+            title="Open KP Support Telegram Bot Page"
+          >
+            <Send className="w-3.5 h-3.5 text-sky-400" />
+            <span>Telegram Bot</span>
+          </button>
+
           {/* AI Copilot Quick Launch */}
           <button
             onClick={onOpenCopilot}
@@ -326,7 +337,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </div>
               <div className="hidden lg:block text-left">
                 <p className="text-xs font-semibold text-white leading-none">{user?.name || user?.email?.split('@')[0] || 'User'}</p>
-                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">{user?.role || 'Owner'}</p>
+                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">User</p>
               </div>
               <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
             </button>
@@ -337,7 +348,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <p className="font-semibold text-white">{company?.name || 'Workspace'}</p>
                   <p className="text-[11px] text-slate-400">{user?.email}</p>
                   <span className="inline-block mt-1 text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 border border-cyan-800 text-cyan-300 font-mono">
-                    Role: {user?.role || 'owner'}
+                    Role: User
                   </span>
                 </div>
                 <div className="space-y-1">

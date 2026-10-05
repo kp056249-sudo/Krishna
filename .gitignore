@@ -53,3 +53,5 @@ temp/
 # Local database & nested backup folders
 .data/
 Krishna/
+node_modules/
+dist/

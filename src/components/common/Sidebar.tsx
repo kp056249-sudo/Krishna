@@ -31,7 +31,8 @@ import {
   ChevronRight,
   X,
   Zap,
-  PhoneCall
+  PhoneCall,
+  Send
 } from 'lucide-react';
 import { NavigationTab } from '../../types';
 
@@ -78,6 +79,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         { id: 'recovery_center', label: 'Recovery Command Center', icon: RotateCcw, badge: 'Live' },
         { id: 'store_connectors', label: 'Store Connectors Hub', icon: Store },
         { id: 'shiprocket', label: 'Shiprocket Logistics', icon: Truck, badge: 'Live API' },
+        { id: 'sku_intelligence', label: 'SKU Intelligence', icon: Package, badge: 'Profitability' },
+        { id: 'rto_intelligence', label: 'RTO ML Intelligence', icon: BrainCircuit, badge: 'ML Model' },
       ],
     },
     {
@@ -106,6 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'ai_copilot', label: 'Autonomous Agent Deck', icon: Sparkles, badge: 'Multi-Agent' },
         { id: 'gemini_calls', label: 'Gemini Live Calls', icon: PhoneCall, badge: 'Live AI Calls' },
+        { id: 'telegram', label: 'KP Telegram Support Bot', icon: Send, badge: 'AI & Images' },
         { id: 'whatsapp_briefing', label: 'WhatsApp 8 AM Dispatcher', icon: MessageSquare, badge: '8:00 AM Auto' },
         { id: 'executive_reports', label: 'Boardroom Report Builder', icon: FileSpreadsheet },
       ],

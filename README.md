@@ -66,4 +66,84 @@ npm run build
 npm start
 ```
 
-For detailed integration guides (Shopify, Razorpay, WhatsApp, Firebase, Gemini), refer to [SETUP.md](./SETUP.md).
+---
+
+## 🇮🇳 हिंदी गाइड: Local me kaise chalayein & Render pe deploy karein
+
+### 1. Local me chalane ka tareeka (Local Setup)
+
+#### Step 1: Dependencies install karein
+Terminal / Git Bash kholein aur command chalayein:
+```bash
+npm install --legacy-peer-deps
+```
+
+#### Step 2: .env file configure karein
+Apni `.env` file kholein aur Telegram Bot ke liye ye 2 zaroori keys bharein:
+1. `BOT_TOKEN`: Telegram par [@BotFather](https://t.me/BotFather) se mila hua apna bot token paste karein (e.g. `BOT_TOKEN=123456789:ABC...`).
+2. `AI_API_KEY`: Aapki Google Gemini API key (already set ho chuki hai).
+
+Baaki variables already configured hain:
+```env
+OWNER_ID=8203364513
+AI_MODEL=gemini-3.8-flash
+IMAGE_MODEL=imagen-3.0-generate-002
+BOT_MODE=polling
+PORT=3000
+```
+
+#### Step 3: Project build aur start karein
+```bash
+npm run build
+npm start
+```
+Browser me `http://localhost:3000` kholein.
+Aapka bot automatically start ho jayega aur Telegram par live ho jayega!
+
+---
+
+### 2. Telegram Bot Features & Testing
+
+1. **Telegram par bot kholein:**
+   - Bot Link: [https://t.me/kp_support_2026_bot](https://t.me/kp_support_2026_bot)
+   - Username: `@kp_support_2026_bot`
+2. **Commands:**
+   - `/start` — Welcome message aur options.
+   - `/help` — Full feature list aur instructions.
+   - `/image <description>` ya `/imagine <description>` — AI se nayi photo generate karwayein.
+   - **Photo Editing:** Koi bhi photo bhejein aur caption me edit instruction likhein (e.g. *"background change karo"*, *"make it anime style"*).
+3. **Owner Forwarding:**
+   - Har customer ka message aur bot ka reply aapko (Owner ID: `8203364513`) Telegram me forward hoga.
+   - Agar aap us notification par Telegram me 'Reply' karenge, toh aapka reply direct us customer tak pahunch jayega!
+
+---
+
+### 3. Render par Live Deploy karne ka tareeka
+
+1. **GitHub par push karein:**
+```bash
+git add .
+git commit -m "feat: complete kp support telegram bot with gemini and imagen"
+git push -u origin main
+```
+
+2. **Render Dashboard Settings (New Web Service):**
+   - **Service Type:** Web Service
+   - **Environment:** Node
+   - **Build Command:** `npm install --legacy-peer-deps && npm run build`
+   - **Start Command:** `npm start`
+   - **Health Check Path:** `/health`
+
+3. **Render Environment Variables (Dashboard me daalein):**
+   Render Dashboard > Service > **Environment** tab me jaakar ye variables add karein:
+   - `NODE_ENV` = `production`
+   - `PORT` = `10000`
+   - `BOT_TOKEN` = `(Aapka BotFather se mila token)`
+   - `OWNER_ID` = `8203364513`
+   - `AI_API_KEY` = `(Aapki Gemini API key)`
+   - `AI_MODEL` = `gemini-3.8-flash`
+   - `IMAGE_MODEL` = `imagen-3.0-generate-002`
+   - `BOT_MODE` = `polling` *(Webhook mode ke liye `BOT_MODE=webhook` set karein)*
+   - `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, etc. (jo pehle se configured the)
+
+Deploy hone ke baad aapki website aur Telegram Bot dono 24/7 internet par live chalenge!

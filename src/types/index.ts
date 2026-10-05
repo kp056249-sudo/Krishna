@@ -46,9 +46,13 @@ export type NavigationTab =
   | 'whatsapp_briefing'
   | 'store_connectors'
   | 'shiprocket'
+  | 'sku_intelligence'
+  | 'rto_intelligence'
   // Executive & AI
   | 'ai_copilot'
   | 'gemini_calls'
+  | 'telegram'
+  | 'telegram_bot'
   | 'ceo_briefing'
   | 'executive_reports'
   // Data & Analytics Studio

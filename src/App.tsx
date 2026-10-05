@@ -23,6 +23,8 @@ import { CustomerLtv } from './components/ecommerce/CustomerLtv';
 import { RecoveryCommandCenter } from './components/ecommerce/RecoveryCommandCenter';
 import { StoreConnectors } from './components/ecommerce/StoreConnectors';
 import { ShiprocketPage } from './components/ecommerce/ShiprocketPage';
+import { SkuIntelligencePage } from './components/ecommerce/SkuIntelligencePage';
+import { RtoIntelligencePage } from './components/ecommerce/RtoIntelligencePage';
 
 // Analytics & ML Studio Screens
 import { DataVisualizationDashboard } from './components/analytics/DataVisualizationDashboard';
@@ -41,6 +43,7 @@ import { AiCopilotChat } from './components/copilot/AiCopilotChat';
 import { ExecutiveReportGenerator } from './components/copilot/ExecutiveReportGenerator';
 import { WhatsAppBriefingView } from './components/copilot/WhatsAppBriefingView';
 import { GeminiLiveCallsPage } from './components/copilot/GeminiLiveCallsPage';
+import { TelegramBotPage } from './components/copilot/TelegramBotPage';
 
 // Company & Security Screens
 import { TeamRbacView } from './components/company/TeamRbacView';
@@ -250,6 +253,10 @@ export default function App() {
         return <StoreConnectors stores={stores} onAddStore={handleAddStore} />;
       case 'shiprocket':
         return <ShiprocketPage />;
+      case 'sku_intelligence':
+        return <SkuIntelligencePage />;
+      case 'rto_intelligence':
+        return <RtoIntelligencePage />;
 
       // Analytics & ML Studio
       case 'real_ai_page':
@@ -292,6 +299,9 @@ export default function App() {
       case 'whatsapp':
       case 'whatsapp_briefing':
         return <WhatsAppBriefingView kpis={realKPIs} currency={currency} />;
+      case 'telegram':
+      case 'telegram_bot':
+        return <TelegramBotPage />;
 
       // Company & Security
       case 'team_rbac':

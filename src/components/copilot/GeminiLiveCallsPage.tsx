@@ -45,6 +45,7 @@ export const GeminiLiveCallsPage: React.FC = () => {
   const [typedCommand, setTypedCommand] = useState('');
   const [lastAiResponse, setLastAiResponse] = useState<string | null>(null);
   const [lastActionsExecuted, setLastActionsExecuted] = useState<any[]>([]);
+  const [selectedModel, setSelectedModel] = useState<'gemini-3.8-flash' | 'gemini-3.6-flash'>('gemini-3.8-flash');
 
   const [callLogs, setCallLogs] = useState<GeminiCallLog[]>([]);
   const [telemetry, setTelemetry] = useState<any>(null);
@@ -215,7 +216,8 @@ export const GeminiLiveCallsPage: React.FC = () => {
     try {
       const res = await api.post('/api/gemini-calls/voice-command', {
         transcript: commandText,
-        autoExecute: true
+        autoExecute: true,
+        model: selectedModel
       });
 
       if (res.success) {
@@ -292,19 +294,49 @@ export const GeminiLiveCallsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Dual Keys Multiplier Badge */}
+        {/* Dual Keys & Model Switcher with Key Auto-Binding */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="p-3 rounded-xl bg-slate-900/90 border border-indigo-700/60 flex items-center gap-3">
-            <Cpu className="w-5 h-5 text-indigo-400" />
-            <div>
-              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider block">
-                Dual Keys Multiplier (2x Limit)
+          <div className="p-3 rounded-xl bg-slate-900/95 border border-indigo-700/80 shadow-lg flex flex-col gap-2">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-[10px] text-indigo-300 uppercase font-bold tracking-wider flex items-center gap-1.5">
+                <Cpu className="w-3.5 h-3.5 text-indigo-400" />
+                Select Live Voice Model
               </span>
-              <span className="text-xs font-bold text-white flex items-center gap-1.5 font-mono-code">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                2 Keys Rotated &amp; Active
+              <span className="text-[10px] font-mono-code font-bold text-emerald-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live Active
               </span>
             </div>
+
+            <div className="flex items-center rounded-lg bg-slate-950 p-1 border border-slate-800 gap-1">
+              <button
+                type="button"
+                onClick={() => setSelectedModel('gemini-3.8-flash')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  selectedModel === 'gemini-3.8-flash'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+                title="Uses Google Gemini 3.8 Flash"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-3.8-flash' ? 'bg-emerald-300 animate-pulse' : 'bg-slate-500'}`} />
+                <span>Gemini 3.8 Flash</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedModel('gemini-3.6-flash')}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                  selectedModel === 'gemini-3.6-flash'
+                    ? 'bg-cyan-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+                title="Uses Google Gemini 3.6 Flash"
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-3.6-flash' ? 'bg-cyan-300 animate-pulse' : 'bg-slate-500'}`} />
+                <span>Gemini 3.6 Flash</span>
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
@@ -467,7 +499,9 @@ export const GeminiLiveCallsPage: React.FC = () => {
                     <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
                     Gemini Spoken Response:
                   </span>
-                  <span className="text-[10px] text-slate-400">Gemini 2.5 Flash</span>
+                  <span className="text-[10px] text-indigo-300 font-mono-code font-bold">
+                    {selectedModel === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Gemini 3.6 Flash'}
+                  </span>
                 </div>
                 <p className="leading-relaxed font-sans text-white text-xs">{lastAiResponse}</p>
               </div>

@@ -1,19 +1,32 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, Mic, MicOff, Plus, ArrowUp, RefreshCw, Copy, Check, Trash2, ArrowRight, ShieldCheck, Database, Key } from 'lucide-react';
-import { askDataNexusCopilot } from '../../services/geminiService';
+import { askDataNexusCopilotWithMeta } from '../../services/geminiService';
+
+export const AI_MODELS = [
+  { id: 'gemini-3.8-flash', label: '3.8 Flash', title: 'Gemini 3.8 Flash' },
+  { id: 'gemini-3.7-flash', label: '3.7 Flash', title: 'Gemini 3.7 Flash' },
+  { id: 'gemini-3.6-flash', label: '3.6 Flash', title: 'Gemini 3.6 Flash' },
+  { id: 'gemini-3.5-flash', label: '3.5 Flash', title: 'Gemini 3.5 Flash' },
+  { id: 'gemini-3.1-pro-preview', label: '3.1 Pro', title: 'Gemini 3.1 Pro Preview' },
+  { id: 'gemini-3-pro-image', label: '3 Pro Image', title: 'Gemini 3 Pro Image' },
+] as const;
+
+export type AiModelId = typeof AI_MODELS[number]['id'];
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  modelUsed?: string;
+  keyUsed?: number;
 }
 
 export const RealAiPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState('GPT-6 Astra');
+  const [selectedModel, setSelectedModel] = useState<AiModelId>('gemini-3.8-flash');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
@@ -52,20 +65,22 @@ export const RealAiPage: React.FC = () => {
     setLoading(true);
 
     try {
-      // Direct call to backend server proxy or Gemini SDK
-      const answer = await askDataNexusCopilot(query);
+      // Direct call to backend server passing selectedModel
+      const res = await askDataNexusCopilotWithMeta(query, selectedModel);
       const assistantMessage: Message = {
         id: `ai_${Date.now()}`,
         role: 'assistant',
-        content: answer,
+        content: res.answer,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        modelUsed: res.modelUsed,
+        keyUsed: res.keyUsed,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
       const errorMessage: Message = {
         id: `ai_${Date.now()}`,
         role: 'assistant',
-        content: `⚠️ **Gemini API Execution Notice**\n\nCould not contact Gemini 2.5 Flash. Please check:\n1. \`GEMINI_API_KEY\` is configured in your \`.env\` file.\n2. You have an active internet connection to Google AI Studio.\n\n*Error details: ${err?.message || 'Key missing or network timeout'}*`,
+        content: `⚠️ **Google Gemini AI Error**\n\nCould not contact Gemini AI service.\n\n*Error details: ${err?.message || 'Key missing or network timeout'}*`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -136,9 +151,11 @@ export const RealAiPage: React.FC = () => {
       <div className="flex items-center justify-between py-2 border-b border-slate-900 mb-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-mono-code font-bold text-slate-300">GPT-6 Astra Live</span>
+          <span className="font-mono-code font-bold text-slate-300">
+            {AI_MODELS.find(m => m.id === selectedModel)?.title || selectedModel}
+          </span>
           <span className="text-slate-600">·</span>
-          <span className="text-slate-500">Real Server-Side AI</span>
+          <span className="text-slate-400">100% Real Google Gemini</span>
         </div>
 
         {messages.length > 0 && (
@@ -220,7 +237,10 @@ export const RealAiPage: React.FC = () => {
                 {msg.role === 'assistant' && (
                   <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400 font-mono-code">
                     <span className="flex items-center gap-1.5 text-cyan-400 font-semibold">
-                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> GPT-6 Astra
+                      <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                      <span>{msg.modelUsed || selectedModel}</span>
+                      <span className="text-slate-600">·</span>
+                      <span className="text-emerald-400">Active</span>
                     </span>
                     <div className="flex items-center gap-3">
                       <button
@@ -320,11 +340,29 @@ export const RealAiPage: React.FC = () => {
                 <Plus className="w-4 h-4" />
               </button>
 
-              {/* Model Pill */}
-              <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-slate-200 text-xs font-medium">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>{selectedModel}</span>
+              {/* 6 Gemini Models Selector */}
+              <div className="flex items-center flex-wrap gap-1 rounded-full bg-slate-900 border border-slate-700/80 p-0.5 shadow-inner max-w-xl">
+                {AI_MODELS.map((m) => {
+                  const isActive = selectedModel === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setSelectedModel(m.id)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+                      }`}
+                      title={m.title}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-emerald-300 animate-pulse' : 'bg-slate-500'}`} />
+                      <span>{m.label}</span>
+                    </button>
+                  );
+                })}
               </div>
+
             </div>
 
             <div className="flex items-center gap-2">

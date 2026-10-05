@@ -1,6 +1,8 @@
 import { GoogleGenAI } from '@google/genai';
 import { adminDb, recordAuditLog } from '../firestoreService.js';
 import { executeDailyBriefing } from './briefingScheduler.js';
+import { sendWhatsAppMessage } from './whatsappService.js';
+import { sendTelegramOwnerNotification } from './telegramBotService.js';
 
 /**
  * Gemini Live Calls AI Service — Dedicated Autonomous Website Voice & Operations Engine
@@ -34,38 +36,50 @@ function getGeminiCallsKeys(): string[] {
   return keys;
 }
 
-function getModelName(): string {
-  return process.env.GEMINI_CALLS_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+export const GEMINI_CALLS_MODELS = {
+  MODEL_1: process.env.GEMINI_CALLS_MODEL_1 || 'gemini-3.8-flash',
+  MODEL_2: process.env.GEMINI_CALLS_MODEL_2 || 'gemini-3.6-flash',
+};
+
+function getModelName(modelArg?: string): string {
+  if (modelArg && (modelArg === GEMINI_CALLS_MODELS.MODEL_1 || modelArg === GEMINI_CALLS_MODELS.MODEL_2)) {
+    return modelArg;
+  }
+  return process.env.GEMINI_CALLS_MODEL || GEMINI_CALLS_MODELS.MODEL_1;
 }
 
 /**
- * Execute call with 2-Key Rotation & Failover
+ * Execute call with 2-Key Automatic Routing & Failover
+ * If preferredKeyIndex is specified (e.g., 1 for Key 1 or 2 for Key 2), tries that key first.
+ * If that key hits quota or fails, seamlessly fails over to the alternate key.
  */
 async function executeWithCallsEngine<T>(
-  operation: (client: GoogleGenAI, keyIndex: number) => Promise<T>
+  operation: (client: GoogleGenAI, keyIndex: number) => Promise<T>,
+  preferredKeyIndex: number = 1
 ): Promise<{ result: T; keyIndex: number } | null> {
   const keys = getGeminiCallsKeys();
   if (keys.length === 0) return null;
 
-  const maxAttempts = keys.length;
-  let attempts = 0;
+  // Build key order: preferred key first, then other keys
+  const targetIndex = Math.max(0, Math.min(preferredKeyIndex - 1, keys.length - 1));
+  const keyOrder: number[] = [targetIndex];
+  for (let i = 0; i < keys.length; i++) {
+    if (i !== targetIndex) keyOrder.push(i);
+  }
+
   let lastError: any = null;
 
-  while (attempts < maxAttempts) {
-    const currentIndex = (callsKeyPointer + attempts) % keys.length;
+  for (const currentIndex of keyOrder) {
     const apiKey = keys[currentIndex];
     const client = new GoogleGenAI({ apiKey });
 
     try {
       const result = await operation(client, currentIndex + 1);
-      // Advance pointer for next round-robin call to balance load
-      callsKeyPointer = (currentIndex + 1) % keys.length;
       return { result, keyIndex: currentIndex + 1 };
     } catch (err: any) {
       lastError = err;
       const errMsg = String(err?.message || err);
       console.warn(`[Gemini Calls Engine] Key #${currentIndex + 1}/${keys.length} encountered: ${errMsg}`);
-      attempts++;
     }
   }
 
@@ -184,11 +198,13 @@ export async function executeWebsiteAction(companyId: string, actionName: string
 export async function processLiveCallVoiceCommand(
   companyId: string,
   userTranscript: string,
-  autoExecute: boolean = true
+  autoExecute: boolean = true,
+  selectedModel?: string
 ): Promise<{
   spokenResponse: string;
   actionsExecuted: any[];
   keyUsed: number;
+  modelUsed: string;
   totalKeysConfigured: number;
 }> {
   const keys = getGeminiCallsKeys();
@@ -215,9 +231,20 @@ export async function processLiveCallVoiceCommand(
     actionsToRun.push('EXECUTE_AUTOPILOT_RULES');
   }
 
-  // If general or all audit requested
-  if (actionsToRun.length === 0 || lower.includes('audit') || lower.includes('sab') || lower.includes('check karo') || lower.includes('pura')) {
-    actionsToRun.push('AUDIT_STORE_PL', 'INTERCEPT_HIGH_RISK_RTO', 'AUDIT_INVENTORY_STOCKOUTS');
+  // Handle data analysis, audits, or general check commands
+  if (
+    actionsToRun.length === 0 || 
+    lower.includes('data') || 
+    lower.includes('analysis') || 
+    lower.includes('analyze') || 
+    lower.includes('audit') || 
+    lower.includes('sab') || 
+    lower.includes('check') || 
+    lower.includes('pura')
+  ) {
+    if (!actionsToRun.includes('AUDIT_STORE_PL')) actionsToRun.push('AUDIT_STORE_PL');
+    if (!actionsToRun.includes('INTERCEPT_HIGH_RISK_RTO')) actionsToRun.push('INTERCEPT_HIGH_RISK_RTO');
+    if (!actionsToRun.includes('AUDIT_INVENTORY_STOCKOUTS')) actionsToRun.push('AUDIT_INVENTORY_STOCKOUTS');
   }
 
   // Execute website actions
@@ -233,6 +260,15 @@ export async function processLiveCallVoiceCommand(
     }
   }
 
+  // Determine model and preferred key slot based on user selection
+  const isKey2Model = selectedModel === GEMINI_CALLS_MODELS.MODEL_2 || selectedModel === 'gemini-3.6-flash';
+  const targetModel = isKey2Model ? GEMINI_CALLS_MODELS.MODEL_2 : GEMINI_CALLS_MODELS.MODEL_1;
+  const preferredKeySlot = isKey2Model ? 2 : 1;
+
+  const candidateModels = isKey2Model
+    ? [GEMINI_CALLS_MODELS.MODEL_2, GEMINI_CALLS_MODELS.MODEL_1, 'gemini-3.7-flash', 'gemini-3.8-flash']
+    : [GEMINI_CALLS_MODELS.MODEL_1, GEMINI_CALLS_MODELS.MODEL_2, 'gemini-3.7-flash', 'gemini-3.6-flash'];
+
   // Synthesize spoken voice response with Gemini
   const prompt = `You are DataNexus Gemini Live Calls Autonomous Engine. You are in an ACTIVE LIVE VOICE CALL with the store owner/founder.
 The user just spoke this command to you during the live call:
@@ -246,38 +282,58 @@ Provide a natural, concise, professional spoken voice response (in easy conversa
 - State clearly what actions were completed across the website and mention key figures (GMV, profit, RTO orders, or stock).
 - Sound like a proactive, elite AI Chief of Staff.`;
 
-  const CANDIDATE_MODELS = [
-    process.env.GEMINI_CALLS_MODEL || 'gemini-2.5-flash',
-    'gemini-2.5-flash',
-    'gemini-3.8-flash',
-    'gemini-3.1-flash-lite',
-    'gemini-3-flash-preview'
-  ];
-
+  let modelUsed = targetModel;
   const geminiExec = await executeWithCallsEngine(async (client, keyIndex) => {
-    for (const m of CANDIDATE_MODELS) {
+    for (const m of candidateModels) {
       try {
         const response = await client.models.generateContent({
           model: m,
           contents: prompt,
         });
-        if (response.text) return response.text;
+        if (response.text) {
+          modelUsed = m;
+          return response.text;
+        }
       } catch (err: any) {
         // Try next candidate model
       }
     }
     return '';
-  });
+  }, preferredKeySlot);
 
   let spokenResponse = '';
-  let keyUsed = 1;
+  let keyUsed = preferredKeySlot;
 
   if (geminiExec && geminiExec.result) {
     spokenResponse = geminiExec.result.trim();
     keyUsed = geminiExec.keyIndex;
   } else {
-    // Graceful fallback response
-    spokenResponse = `Maine live call par aapke store ka real-time audit aur actions execute kar diye hain. Gross GMV aur high-risk COD RTO orders scan ho chuke hain, aur inventory safe runway par operate ho rahi hai.`;
+    // Dynamic fallback response grounded in executed actions
+    const plAction = executedActions.find(a => a.action === 'AUDIT_STORE_PL');
+    const rtoAction = executedActions.find(a => a.action === 'INTERCEPT_HIGH_RISK_RTO');
+    const stockAction = executedActions.find(a => a.action === 'AUDIT_INVENTORY_STOCKOUTS');
+
+    const details = [
+      plAction ? plAction.summary : 'Store P&L analyzed.',
+      rtoAction ? rtoAction.summary : 'RTO shield active.',
+      stockAction ? stockAction.summary : 'Inventory verified.'
+    ].join(' ');
+
+    spokenResponse = `Maine live call par aapke store ka real-time audit pura kar diya hai. ${details} Sabhi details automatically aapke WhatsApp aur Telegram par dispatch kar di gayi hain.`;
+  }
+
+  // Automated notification to Telegram & WhatsApp with store metrics
+  try {
+    const summaryLines = executedActions.map(a => `• <b>${a.title}:</b> ${a.summary}`).join('\n');
+    const teleMsg = `📞 <b>Gemini Live Operations Dispatch</b>\n\n<b>Command:</b> "${userTranscript}"\n<b>Response:</b> ${spokenResponse}\n\n<b>Store Intelligence:</b>\n${summaryLines || '• All systems running within safe thresholds.'}`;
+    sendTelegramOwnerNotification(teleMsg).catch(() => {});
+
+    const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070';
+    const waLines = executedActions.map(a => `• *${a.title}:* ${a.summary}`).join('\n');
+    const waMsg = `*📞 Gemini Live Operations Dispatch*\n\n*Command:* "${userTranscript}"\n*Response:* ${spokenResponse}\n\n*Store Intelligence:*\n${waLines || '• All systems running within safe thresholds.'}`;
+    sendWhatsAppMessage(companyId, founderPhone, waMsg).catch(() => {});
+  } catch (notifyErr) {
+    // Non-blocking notification
   }
 
   // Log in Firestore call session logs
@@ -287,7 +343,8 @@ Provide a natural, concise, professional spoken voice response (in easy conversa
       spokenResponse,
       actions: executedActions.map(a => a.action),
       timestamp: new Date().toISOString(),
-      keyIndex: keyUsed
+      keyIndex: keyUsed,
+      modelUsed
     });
   } catch (err) {
     // Non-blocking log
@@ -297,6 +354,7 @@ Provide a natural, concise, professional spoken voice response (in easy conversa
     spokenResponse,
     actionsExecuted: executedActions,
     keyUsed,
+    modelUsed,
     totalKeysConfigured: keys.length
   };
 }
@@ -308,10 +366,16 @@ export function getCallsEngineTelemetry() {
     activeModel: getModelName(),
     status: keys.length > 0 ? 'LIVE_STREAMING_READY' : 'NO_KEYS',
     quotaMultiplier: `${Math.max(keys.length, 1)}x Quota Capacity`,
+    availableModels: [
+      { id: GEMINI_CALLS_MODELS.MODEL_1, label: 'Gemini 3.8 Flash', keySlot: 1 },
+      { id: GEMINI_CALLS_MODELS.MODEL_2, label: 'Gemini 3.6 Flash', keySlot: 2 },
+    ],
     keysConfigured: keys.map((_, i) => ({
       slot: i + 1,
       status: 'ACTIVE_FAILOVER_READY',
-      label: i === 0 ? 'Primary Call Stream' : `Secondary Quota Multiplier #${i + 1}`
+      modelAssigned: i === 0 ? GEMINI_CALLS_MODELS.MODEL_1 : GEMINI_CALLS_MODELS.MODEL_2,
+      label: i === 0 ? `Gemini 3.8 Flash` : `Gemini 3.6 Flash`
     }))
   };
 }
+

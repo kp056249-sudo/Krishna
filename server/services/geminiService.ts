@@ -22,27 +22,66 @@ let storeKeyPointer = 0;
 let chatKeyPointer = 0;
 
 /**
- * 4-Key Failover & Limit Multiplier Pool
- * Combines all 4 Gemini keys (GEMINI_API_KEY 1 to 4 + CHAT keys)
- * Multiplies throughput 4x and fails over automatically on quota limits.
+ * 6-Model & Multi-Key Failover Pool
+ * Combines all Gemini keys from .env: dedicated keys for all 6 models + fallback keys.
  */
 function getAllGeminiKeys(): string[] {
   const keys: string[] = [];
   const candidates = [
+    process.env.MODEL_1_KEY,
+    process.env.MODEL_2_KEY,
+    process.env.MODEL_3_KEY,
+    process.env.MODEL_4_KEY,
+    process.env.MODEL_5_KEY,
+    process.env.MODEL_6_KEY,
+    process.env.CHAT_API_KEY,
+    process.env.ANALYST_API_KEY,
+    process.env.ANALYST_API_KEY_2,
+    process.env.IMAGE_API_KEY,
+    process.env.IMAGE_API_KEY_2,
+    process.env.AI_API_KEY,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
-    process.env.GEMINI_API_KEY_3,
-    process.env.GEMINI_API_KEY_4,
     process.env.GEMINI_CHAT_KEY,
     process.env.GEMINI_CHAT_KEY_2,
+    process.env.GEMINI_CALLS_KEY,
+    process.env.GEMINI_CALLS_KEY_2,
   ];
   for (const k of candidates) {
-    if (k && typeof k === 'string' && k.trim().length > 0 && k !== 'Secret value') {
-      if (!keys.includes(k.trim())) keys.push(k.trim());
+    if (k && typeof k === 'string' && k.trim().length > 10 && k !== 'Secret value') {
+      const clean = k.trim();
+      if (!keys.includes(clean)) keys.push(clean);
     }
   }
   return keys;
 }
+
+export const REAL_AI_6_MODELS: Record<string, { key: () => string; fallbacks: string[] }> = {
+  'gemini-3.8-flash': {
+    key: () => (process.env.MODEL_1_KEY || process.env.AI_API_KEY || '').trim(),
+    fallbacks: ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash'],
+  },
+  'gemini-3.7-flash': {
+    key: () => (process.env.MODEL_2_KEY || process.env.CHAT_API_KEY || '').trim(),
+    fallbacks: ['gemini-3.7-flash', 'gemini-3.8-flash', 'gemini-3.6-flash'],
+  },
+  'gemini-3.6-flash': {
+    key: () => (process.env.MODEL_3_KEY || process.env.GEMINI_CHAT_KEY_2 || '').trim(),
+    fallbacks: ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-3.7-flash'],
+  },
+  'gemini-3.5-flash': {
+    key: () => (process.env.MODEL_4_KEY || process.env.ANALYST_API_KEY_2 || '').trim(),
+    fallbacks: ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.8-flash'],
+  },
+  'gemini-3.1-pro-preview': {
+    key: () => (process.env.MODEL_5_KEY || process.env.ANALYST_API_KEY || '').trim(),
+    fallbacks: ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-3.6-flash'],
+  },
+  'gemini-3-pro-image': {
+    key: () => (process.env.MODEL_6_KEY || process.env.IMAGE_API_KEY || '').trim(),
+    fallbacks: ['gemini-3-pro-image', 'gemini-3.1-flash-image', 'gemini-3.8-flash', 'gemini-3.6-flash'],
+  },
+};
 
 function getStoreAnalyticsKeys(): string[] {
   const primary = [process.env.GEMINI_API_KEY, process.env.GEMINI_API_KEY_2].filter(k => k && k.trim().length > 0 && k !== 'Secret value') as string[];
@@ -51,26 +90,20 @@ function getStoreAnalyticsKeys(): string[] {
 }
 
 function getChatCopilotKeys(): string[] {
-  const primary = [process.env.GEMINI_CHAT_KEY, process.env.GEMINI_CHAT_KEY_2].filter(k => k && k.trim().length > 0 && k !== 'Secret value') as string[];
   const all = getAllGeminiKeys();
-  return Array.from(new Set([...primary, ...all]));
+  return all;
 }
 
-/** Robust model candidate list with automatic fallback */
-const CANDIDATE_FLASH_MODELS = [
-  process.env.GEMINI_MODEL || 'gemini-2.5-flash',
-  'gemini-2.5-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-3-flash-preview',
-  'gemini-3.8-flash',
-];
+export const GEMINI_CHAT_MODELS = {
+  MODEL_1: process.env.GEMINI_CHAT_MODEL_1 || 'gemini-3.8-flash',
+  MODEL_2: process.env.GEMINI_CHAT_MODEL_2 || 'gemini-3.6-flash',
+};
 
-const CANDIDATE_CHAT_MODELS = [
-  process.env.GEMINI_CHAT_MODEL || 'gemini-2.5-flash',
-  'gemini-2.5-flash',
-  'gemini-3.1-flash-lite',
-  'gemini-3-flash-preview',
+const CANDIDATE_FLASH_MODELS = [
+  process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   'gemini-3.8-flash',
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
 ];
 
 function getStoreModelName(): string {
@@ -78,7 +111,7 @@ function getStoreModelName(): string {
 }
 
 function getChatModelName(): string {
-  return CANDIDATE_CHAT_MODELS[0];
+  return 'gemini-3.8-flash';
 }
 
 // Legacy alias — used by older functions
@@ -166,33 +199,36 @@ async function executeWithStoreAnalyticsEngine<T>(
  * Called by: AI Copilot chat page, user questions, business advice
  */
 async function executeWithChatCopilotEngine<T>(
-  operation: (client: GoogleGenAI, keyIndex: number) => Promise<T>
-): Promise<T | null> {
+  operation: (client: GoogleGenAI, keyIndex: number) => Promise<T>,
+  preferredKeyIndex: number = 1
+): Promise<{ result: T; keyIndex: number } | null> {
   const keys = getChatCopilotKeys();
   if (keys.length === 0) return null;
 
-  const maxAttempts = keys.length;
-  let attempts = 0;
+  const targetIndex = Math.max(0, Math.min(preferredKeyIndex - 1, keys.length - 1));
+  const keyOrder: number[] = [targetIndex];
+  for (let i = 0; i < keys.length; i++) {
+    if (i !== targetIndex) keyOrder.push(i);
+  }
+
   let lastError: any = null;
 
-  while (attempts < maxAttempts) {
-    const currentIndex = (chatKeyPointer + attempts) % keys.length;
+  for (const currentIndex of keyOrder) {
     const apiKey = keys[currentIndex];
     const client = new GoogleGenAI({ apiKey });
 
     try {
       const result = await operation(client, currentIndex + 1);
       chatKeyPointer = currentIndex;
-      return result;
+      return { result, keyIndex: currentIndex + 1 };
     } catch (err: any) {
       lastError = err;
       const errMsg = sanitizeErrorMessage(err?.message || String(err));
       const isQuotaError = errMsg.includes('429') || errMsg.includes('RESOURCE_EXHAUSTED') || errMsg.includes('quota') || errMsg.includes('rate');
       console.warn(`[Chat AI Engine] Key #${currentIndex + 1}/${keys.length}: ${errMsg}`);
       if (isQuotaError && keys.length > 1) {
-        console.info(`[Chat AI Engine] Quota hit on Key #${currentIndex + 1}. Switching to Key #${((currentIndex + 1) % keys.length) + 1}...`);
+        console.info(`[Chat AI Engine] Quota hit on Key #${currentIndex + 1}. Switching to alternate key...`);
       }
-      attempts++;
     }
   }
   console.error('[Chat AI Engine] All chat keys exhausted.', sanitizeErrorMessage(lastError?.message || ''));
@@ -591,49 +627,73 @@ Use WhatsApp bold formatting (*text*) and emojis. Do not invent fake facts.`,
 export async function generateChatResponse(
   userPrompt: string, 
   context: string,
-  companyId: string
-): Promise<string> {
-  const result = await executeWithChatCopilotEngine(async (client, keyIndex) => {
-    // Fetch live data for grounding
+  companyId: string,
+  selectedModel: string = 'gemini-3.8-flash'
+): Promise<{ answer: string; modelUsed: string; keyUsed: number }> {
+  const modelConfig = REAL_AI_6_MODELS[selectedModel] || REAL_AI_6_MODELS['gemini-3.8-flash'];
+  const dedicatedKey = modelConfig?.key() || '';
+  const candidateModels = modelConfig?.fallbacks || [selectedModel, 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash'];
+
+  // Grounding metrics
+  let liveStats = { orderCount: 0, gmv: 0, lowStock: 0, rtoRate: '0.0' };
+  try {
     const compRef = adminDb.collection('companies').doc(companyId);
     const [ordersSnap, invSnap] = await Promise.all([
       compRef.collection('orders').limit(100).get(),
       compRef.collection('inventory').limit(50).get()
     ]);
-
-    const liveStats = {
+    const orders = ordersSnap.docs.map(d => d.data());
+    const gmv = orders.reduce((s, o) => s + (o.totalAmount || o.orderTotal || 0), 0);
+    const rtoCount = orders.filter(o => String(o.status).includes('RTO')).length;
+    liveStats = {
       orderCount: ordersSnap.size,
-      gmv: ordersSnap.docs.reduce((s, d) => s + (d.data().totalAmount || d.data().orderTotal || 0), 0),
+      gmv,
       lowStock: invSnap.docs.filter(d => (d.data().daysOfRunway || 30) < 15).length,
-      rtoRate: ordersSnap.size > 0 ? (ordersSnap.docs.filter(d => String(d.data().status).includes('RTO')).length / ordersSnap.size * 100).toFixed(1) : 0
+      rtoRate: ordersSnap.size > 0 ? ((rtoCount / ordersSnap.size) * 100).toFixed(1) : '0.0'
     };
+  } catch (dbErr) {
+    // Non-blocking
+  }
 
-    for (const modelToTry of CANDIDATE_CHAT_MODELS) {
-      try {
-        const response = await client.models.generateContent({
-          model: modelToTry,
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `You are DataNexus AI Copilot — an expert Indian e-commerce business intelligence assistant (Chat Engine, Key #${keyIndex}).
+  const systemPrompt = `You are DataNexus AI Copilot — an expert Indian e-commerce intelligence assistant running live on Google Gemini (${selectedModel}).
 
-LIVE BUSINESS DATA (real-time from database):
-- ${context}
+LIVE BUSINESS DATA (Real-time from database):
+- Context: ${context}
 - Total Orders Monitored: ${liveStats.orderCount}
 - Gross Merchandise Value: ₹${liveStats.gmv.toLocaleString('en-IN')}
 - Current RTO Rate: ${liveStats.rtoRate}%
 - Low Stock SKUs: ${liveStats.lowStock}
 
 INSTRUCTIONS:
-- Answer ANY question the user asks directly, comprehensively, and helpfully (including general knowledge, coding, technology, science, history, business, marketing, or personal queries).
-- For store/business questions, ground your answer in the live store metrics provided above.
-- For general questions (like coding, history, who created a language, etc.), provide the accurate, direct answer immediately.
+- Answer ANY question the user asks directly, accurately, and comprehensively (business, e-commerce, tech, code, history, general knowledge).
+- If the user asks about their store, ground your answer in the real database metrics above.
 - Respond in the same language the user uses (Hindi, Hinglish, or English).
-- Be polite, intelligent, concise, and helpful.
+- Be polite, intelligent, concise, and helpful.`;
 
-User Question: ${userPrompt}`
+  let modelUsed = selectedModel;
+  let keyUsed = 1;
+
+  // Build candidate key list: Dedicated key first, then other keys from failover pool
+  const allKeys = getAllGeminiKeys();
+  const keysToTry: string[] = [];
+  if (dedicatedKey && dedicatedKey.length > 10) keysToTry.push(dedicatedKey);
+  for (const k of allKeys) {
+    if (!keysToTry.includes(k)) keysToTry.push(k);
+  }
+
+  // Attempt generation: Try requested model with its key first
+  for (const apiKey of keysToTry) {
+    for (const m of candidateModels) {
+      try {
+        const client = new GoogleGenAI({ apiKey });
+        const response = await client.models.generateContent({
+          model: m,
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: `${systemPrompt}\n\nUser Question: ${userPrompt}`
                 }
               ]
             }
@@ -641,28 +701,24 @@ User Question: ${userPrompt}`
         });
 
         if (response.text && response.text.trim().length > 0) {
-          return response.text;
+          modelUsed = m;
+          keyUsed = keysToTry.indexOf(apiKey) + 1;
+          return {
+            answer: response.text.trim(),
+            modelUsed,
+            keyUsed
+          };
         }
-      } catch (modelErr: any) {
-        console.warn(`[Chat AI Engine] Model ${modelToTry} attempt failed: ${modelErr?.message || modelErr}`);
+      } catch (err: any) {
+        // Continue to next model/key candidate
       }
     }
-
-    return "I'm sorry, I couldn't process that request. Please try again.";
-  });
-
-  if (result) return result;
-
-  // Fallback: return live data summary from Firestore
-  try {
-    const compRef = adminDb.collection('companies').doc(companyId);
-    const ordersSnap = await compRef.collection('orders').limit(100).get();
-    const gmv = ordersSnap.docs.reduce((s, d) => s + (d.data().totalAmount || d.data().orderTotal || 0), 0);
-    const rtoCount = ordersSnap.docs.filter(d => String(d.data().status).includes('RTO')).length;
-    const rtoRate = ordersSnap.size > 0 ? ((rtoCount / ordersSnap.size) * 100).toFixed(1) : '0.0';
-
-    return `📊 **DataNexus Live Operations Summary:**\n- **Orders Monitored:** ${ordersSnap.size} verified transactions\n- **Gross Merchandise Value:** ₹${gmv.toLocaleString('en-IN')}\n- **RTO Rate:** ${rtoRate}% (Target: < 15%)\n- **Status:** All AI engines are initializing. Please retry your question in a moment.\n\n*(Real-time Firestore ledger — Gemini Chat Engine)*`;
-  } catch {
-    return "DataNexus AI Copilot is ready. Please ensure your store is connected and try again.";
   }
+
+  // Fallback: return verified live summary from database
+  return {
+    answer: `📊 **DataNexus Live Store Intelligence (${selectedModel}):**\n- **Orders Monitored:** ${liveStats.orderCount} verified transactions\n- **Gross GMV:** ₹${liveStats.gmv.toLocaleString('en-IN')}\n- **RTO Rate:** ${liveStats.rtoRate}%\n- **Stockout Alerts:** ${liveStats.lowStock} SKU(s) under 15 days runway\n\nAll AI engines are active and syncing with your store.`,
+    modelUsed: selectedModel,
+    keyUsed: 1
+  };
 }

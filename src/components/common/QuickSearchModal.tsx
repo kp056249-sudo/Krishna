@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, ArrowRight, Zap, Target, ShieldAlert, ShieldCheck, Cpu, Terminal, Cloud, Sparkles, Building2, Package } from 'lucide-react';
+import { Search, X, ArrowRight, Zap, Target, ShieldAlert, ShieldCheck, Cpu, Terminal, Cloud, Sparkles, Building2, Package, Send } from 'lucide-react';
 import { NavigationTab } from '../../types';
 
 interface QuickSearchModalProps {
@@ -55,6 +55,7 @@ export const QuickSearchModal: React.FC<QuickSearchModalProps> = ({
     { id: 'synthetic_data', title: 'Synthetic Data Generator (Test Tool)', category: 'Data Engineering', icon: Zap, keywords: 'test data generator pii anonymizer csv json' },
     { id: 'ai_copilot', title: 'Gemini Data Scientist & Copilot', category: 'AI Intelligence', icon: Sparkles, keywords: 'ai chat gemini copilot mentor business insights' },
     { id: 'executive_reports', title: 'Boardroom Executive Report Builder', category: 'Executive', icon: Zap, keywords: 'pdf export investor report executive summary' },
+    { id: 'telegram', title: 'KP Telegram Support Bot (@kp_support_2026_bot)', category: 'Executive', icon: Send, keywords: 'telegram bot support ai images kp_support_2026_bot gemini photo edit customer help' },
     { id: 'whatsapp_briefing', title: 'CEO Daily WhatsApp Briefing Dispatcher', category: 'Executive', icon: Zap, keywords: 'whatsapp daily morning snapshot alerts notification' },
     { id: 'team_rbac', title: 'Team Access & RBAC Security Suite', category: 'Security', icon: Zap, keywords: 'roles permissions super admin audit log security' },
     { id: 'subscription_billing', title: 'Subscription Plans & Credit Meter', category: 'Billing', icon: Zap, keywords: 'pricing plans hyperscale credits payment razorpay' },

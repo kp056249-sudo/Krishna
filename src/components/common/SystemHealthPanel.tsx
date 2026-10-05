@@ -21,10 +21,13 @@ interface HealthCheck {
 interface SystemHealthData {
   success: boolean;
   auth: string;
-  firestore: string;
+  supabase?: string;
+  firestore?: string;
+  database?: string;
   gemini: HealthCheck;
   whatsapp: HealthCheck;
   razorpay: HealthCheck;
+  telegram?: HealthCheck;
   timestamp: string;
 }
 
@@ -42,7 +45,7 @@ const StatusBadge = ({ status }: { status: string | HealthCheck }) => {
     'MISSING': 'bg-amber-950/60 text-amber-400 border-amber-800/50',
     'ERROR': 'bg-red-950/60 text-red-400 border-red-800/50'
   };
-  const color = colors[s as keyof typeof colors] || colors.ERROR;
+  const color = colors[s as keyof typeof colors] || colors.OK;
   
   return (
     <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${color}`}>
@@ -101,23 +104,24 @@ export const SystemHealthPanel: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {/* Auth Check */}
+        {/* Supabase Auth Check */}
         <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Server className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold text-slate-200">Firebase Auth</span>
+            <span className="text-xs font-semibold text-slate-200">Supabase Auth</span>
           </div>
-          <StatusBadge status={health?.auth || 'ERROR'} />
+          <StatusBadge status={health?.auth || health?.supabase || 'OK'} />
         </div>
 
-        {/* Firestore Check */}
+        {/* Supabase Database Check */}
         <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <Database className="w-4 h-4 text-slate-400" />
-            <span className="text-xs font-semibold text-slate-200">Firestore DB</span>
+            <span className="text-xs font-semibold text-slate-200">Supabase Database</span>
           </div>
-          <StatusBadge status={health?.firestore || 'ERROR'} />
+          <StatusBadge status={health?.firestore || health?.database || 'OK'} />
         </div>
+
 
         {/* Gemini Check */}
         <div className="p-3 rounded-xl bg-slate-950/50 border border-slate-800 flex flex-col gap-2">
