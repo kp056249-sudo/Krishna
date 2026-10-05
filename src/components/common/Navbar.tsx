@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search,
   Bell,
@@ -231,7 +232,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {/* Branded Theme Colors Palette Picker (10 Unique Enterprise Colors) */}
-          <div className="relative z-40">
+          <div className="relative">
             <button
               type="button"
               onClick={(e) => {
@@ -250,11 +251,68 @@ export const Navbar: React.FC<NavbarProps> = ({
                 style={{ backgroundColor: activeColor.hex }}
               />
             </button>
+          </div>
 
-            {showThemePicker && (
+          {/* Notification Alerts Bell */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowNotifications(prev => !prev);
+                setShowThemePicker(false);
+                setShowUserMenu(false);
+                if (!showNotifications) fetchAlerts();
+              }}
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer active:scale-95 touch-manipulation"
+              title="System Alerts & Order Warnings"
+            >
+              <Bell className="w-4 h-4" />
+              {notifications.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              )}
+            </button>
+          </div>
+
+          {/* User Profile Menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowUserMenu(prev => !prev);
+                setShowThemePicker(false);
+                setShowNotifications(false);
+              }}
+              className="flex items-center gap-2 p-1 pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer active:scale-95 touch-manipulation"
+            >
+              <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs">
+                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'DN'}
+              </div>
+              <div className="hidden lg:block text-left">
+                <p className="text-xs font-semibold text-white leading-none">{user?.name || user?.email?.split('@')[0] || 'User'}</p>
+                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">User</p>
+              </div>
+              <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      {/* Portaled Popups directly to document.body to prevent clipping and navbar blurring */}
+      {typeof document !== 'undefined' && (
+        <>
+          {/* Theme Color Picker Modal / Popup */}
+          {showThemePicker && createPortal(
+            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
+              <div 
+                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
+                onClick={() => setShowThemePicker(false)}
+              />
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-full mt-2 w-72 max-w-[85vw] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150"
+                className="relative z-10 pointer-events-auto w-72 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
               >
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2.5">
                   <span className="font-bold text-white flex items-center gap-1.5">
@@ -293,39 +351,26 @@ export const Navbar: React.FC<NavbarProps> = ({
                   })}
                 </div>
               </div>
-            )}
-          </div>
+            </div>,
+            document.body
+          )}
 
-          {/* Notification Alerts Bell */}
-          <div className="relative z-40">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowNotifications(prev => !prev);
-                setShowThemePicker(false);
-                setShowUserMenu(false);
-                if (!showNotifications) fetchAlerts();
-              }}
-              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer active:scale-95 touch-manipulation"
-              title="System Alerts & Order Warnings"
-            >
-              <Bell className="w-4 h-4" />
-              {notifications.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              )}
-            </button>
-
-            {showNotifications && (
+          {/* Notifications Modal / Popup */}
+          {showNotifications && createPortal(
+            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
+              <div 
+                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
+                onClick={() => setShowNotifications(false)}
+              />
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-full mt-2 w-80 max-w-[85vw] bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-3 text-xs animate-in fade-in zoom-in-95 duration-150"
+                className="relative z-10 pointer-events-auto w-80 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl p-3 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <span className="font-bold text-white flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> System Alerts
                   </span>
-                  <button onClick={fetchAlerts} className="text-[10px] text-cyan-400 hover:underline">
+                  <button type="button" onClick={fetchAlerts} className="text-[10px] text-cyan-400 hover:underline cursor-pointer">
                     Refresh
                   </button>
                 </div>
@@ -348,35 +393,20 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            </div>,
+            document.body
+          )}
 
-          {/* User Profile Menu */}
-          <div className="relative z-40">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowUserMenu(prev => !prev);
-                setShowThemePicker(false);
-                setShowNotifications(false);
-              }}
-              className="flex items-center gap-2 p-1 pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer active:scale-95 touch-manipulation"
-            >
-              <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs">
-                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'DN'}
-              </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-xs font-semibold text-white leading-none">{user?.name || user?.email?.split('@')[0] || 'User'}</p>
-                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">User</p>
-              </div>
-              <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
-            </button>
-
-            {showUserMenu && (
+          {/* User Menu Modal / Popup */}
+          {showUserMenu && createPortal(
+            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
+              <div 
+                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
+                onClick={() => setShowUserMenu(false)}
+              />
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-full mt-2 w-64 max-w-[85vw] bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 text-xs animate-in fade-in zoom-in-95 duration-150"
+                className="relative z-10 pointer-events-auto w-64 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl p-2 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
               >
                 <div className="px-3 py-2 border-b border-slate-800 mb-1">
                   <p className="font-semibold text-white">{company?.name || 'Workspace'}</p>
@@ -433,22 +463,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 </div>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-
-      {/* Backdrop overlay for active popups on all screens */}
-      {(showThemePicker || showNotifications || showUserMenu) && (
-        <div 
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[2px]" 
-          onClick={() => {
-            setShowThemePicker(false);
-            setShowNotifications(false);
-            setShowUserMenu(false);
-          }} 
-        />
+            </div>,
+            document.body
+          )}
+        </>
       )}
     </header>
   );
