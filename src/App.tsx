@@ -364,12 +364,11 @@ export default function App() {
         onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
       />
 
-      {/* Background Dimmed & Blurred Overlay when Menu is Open (All Screens) */}
+      {/* Background Dimmed Overlay when Menu is Open (Below Navbar) */}
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-md animate-in fade-in duration-200 cursor-pointer"
-          style={{ backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+          className="fixed inset-x-0 bottom-0 top-14 z-30 bg-black/60 animate-in fade-in duration-200 cursor-pointer"
           aria-label="Close Navigation Overlay"
         />
       )}
@@ -391,8 +390,8 @@ export default function App() {
         <main
           className={`flex-1 p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
             mobileMenuOpen
-              ? 'filter blur-sm select-none pointer-events-none opacity-50 scale-[0.99]'
-              : 'filter-none opacity-100 scale-100'
+              ? 'select-none pointer-events-none opacity-40 scale-[0.99]'
+              : 'opacity-100 scale-100'
           }`}
         >
           {renderActiveScreen()}

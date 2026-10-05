@@ -94,21 +94,23 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
   };
 
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setShowThemePicker(false);
+      setShowNotifications(false);
+      setShowUserMenu(false);
+    };
+    window.addEventListener('click', handleOutsideClick);
+    return () => window.removeEventListener('click', handleOutsideClick);
+  }, []);
+
   const selectedStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80">
-      <div 
-        className="w-full overflow-x-auto no-scrollbar scroll-smooth px-2 sm:px-4 lg:px-6 py-2"
-        style={{
-          WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-x',
-          overscrollBehaviorX: 'contain'
-        }}
-      >
-        <div className="flex items-center justify-between gap-3 w-max min-w-full">
+    <header className="sticky top-0 z-50 bg-slate-950/98 border-b border-slate-800/80 px-2 sm:px-4 lg:px-6 py-2">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-3 w-full">
         {/* Left: Hamburger 3-lines Icon + Brand */}
-        <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 flex-shrink-0 sticky left-0 z-20 bg-slate-950/95 pr-1">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           {/* Main 3-Lines / Hamburger Menu Button */}
           <button
             onClick={onToggleMobileMenu}
@@ -123,12 +125,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             {mobileMenuOpen ? (
               <>
                 <X className="w-5 h-5 text-cyan-400 animate-in spin-in-90 duration-150" />
-                <span className="text-xs font-bold text-cyan-300">Close</span>
+                <span className="text-xs font-bold text-cyan-300 hidden sm:inline">Close</span>
               </>
             ) : (
               <>
                 <Menu className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-100 group-hover:text-cyan-300">
+                <span className="text-xs font-bold text-slate-100 group-hover:text-cyan-300 hidden sm:inline">
                   Menu
                 </span>
               </>
@@ -144,10 +146,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">DATANEXUS</span>
-                <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 border border-cyan-500/40 text-cyan-300">ENTERPRISE</span>
+                <span className="font-extrabold text-xs sm:text-base tracking-tight text-white">DATANEXUS</span>
+                <span className="text-[8px] sm:text-[10px] font-bold px-1 sm:px-1.5 py-0.5 rounded bg-cyan-900/60 border border-cyan-500/40 text-cyan-300 hidden xs:inline">ENTERPRISE</span>
               </div>
-              <p className="hidden sm:block text-[11px] text-slate-400 font-medium tracking-tight">Enterprise E-Commerce &amp; Analytics OS</p>
+              <p className="hidden md:block text-[11px] text-slate-400 font-medium tracking-tight">Enterprise E-Commerce &amp; Analytics OS</p>
             </div>
           </button>
         </div>
@@ -169,7 +171,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right: Controls & Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
           {/* Telegram Support Bot Launch */}
           <button
             onClick={() => onSelectTab('telegram')}
@@ -177,7 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Open KP Support Telegram Bot Page"
           >
             <Send className="w-3.5 h-3.5 text-sky-400" />
-            <span>Telegram Bot</span>
+            <span className="hidden lg:inline">Telegram Bot</span>
           </button>
 
           {/* AI Copilot Quick Launch */}
@@ -186,19 +188,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-600/30 hover:to-blue-600/30 border border-cyan-500/40 text-cyan-300 text-xs font-semibold shadow-sm hover:shadow transition-all cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-            <span>AI Copilot</span>
+            <span className="hidden lg:inline">AI Copilot</span>
           </button>
 
           {/* Currency Switcher */}
           <button
             onClick={onToggleCurrency}
-            className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
+            className="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
             title="Toggle INR / USD Currency View"
           >
-            {currency === 'INR' ? '₹ INR' : '$ USD'}
+            {currency === 'INR' ? '₹' : '$'}
           </button>
 
-          {/* Store Switcher (Shown on desktop, hidden on narrow mobile so navbar doesn't break) */}
+          {/* Store Switcher (Shown on desktop) */}
           {stores.length > 0 && (
             <div className="relative hidden lg:block">
               <select
@@ -220,7 +222,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={toggleMode}
-            className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
+            className="p-1.5 sm:p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm active:scale-95"
             title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             aria-label="Toggle Light/Dark Theme"
           >
@@ -241,7 +243,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setShowNotifications(false);
                 setShowUserMenu(false);
               }}
-              className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95 touch-manipulation"
+              className="p-1.5 sm:p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-1 cursor-pointer shadow-sm active:scale-95 touch-manipulation"
               title="Branded Theme Colors (10 Enterprise Presets)"
               aria-label="Choose Theme Color"
             >
@@ -251,68 +253,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 style={{ backgroundColor: activeColor.hex }}
               />
             </button>
-          </div>
 
-          {/* Notification Alerts Bell */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowNotifications(prev => !prev);
-                setShowThemePicker(false);
-                setShowUserMenu(false);
-                if (!showNotifications) fetchAlerts();
-              }}
-              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer active:scale-95 touch-manipulation"
-              title="System Alerts & Order Warnings"
-            >
-              <Bell className="w-4 h-4" />
-              {notifications.length > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-              )}
-            </button>
-          </div>
-
-          {/* User Profile Menu */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowUserMenu(prev => !prev);
-                setShowThemePicker(false);
-                setShowNotifications(false);
-              }}
-              className="flex items-center gap-2 p-1 pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer active:scale-95 touch-manipulation"
-            >
-              <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs">
-                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'DN'}
-              </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-xs font-semibold text-white leading-none">{user?.name || user?.email?.split('@')[0] || 'User'}</p>
-                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">User</p>
-              </div>
-              <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-      {/* Portaled Popups directly to document.body to prevent clipping and navbar blurring */}
-      {typeof document !== 'undefined' && (
-        <>
-          {/* Theme Color Picker Modal / Popup */}
-          {showThemePicker && createPortal(
-            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
-              <div 
-                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
-                onClick={() => setShowThemePicker(false)}
-              />
+            {showThemePicker && (
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="relative z-10 pointer-events-auto w-72 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
+                className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2.5">
                   <span className="font-bold text-white flex items-center gap-1.5">
@@ -351,20 +296,33 @@ export const Navbar: React.FC<NavbarProps> = ({
                   })}
                 </div>
               </div>
-            </div>,
-            document.body
-          )}
+            )}
+          </div>
 
-          {/* Notifications Modal / Popup */}
-          {showNotifications && createPortal(
-            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
-              <div 
-                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
-                onClick={() => setShowNotifications(false)}
-              />
+          {/* Notification Alerts Bell */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowNotifications(prev => !prev);
+                setShowThemePicker(false);
+                setShowUserMenu(false);
+                if (!showNotifications) fetchAlerts();
+              }}
+              className="p-1.5 sm:p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer active:scale-95 touch-manipulation"
+              title="System Alerts & Order Warnings"
+            >
+              <Bell className="w-4 h-4" />
+              {notifications.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+              )}
+            </button>
+
+            {showNotifications && (
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="relative z-10 pointer-events-auto w-80 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl p-3 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
+                className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 p-3 text-xs animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <span className="font-bold text-white flex items-center gap-1.5">
@@ -393,20 +351,35 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </div>
-            </div>,
-            document.body
-          )}
+            )}
+          </div>
 
-          {/* User Menu Modal / Popup */}
-          {showUserMenu && createPortal(
-            <div className="fixed inset-0 z-[100] flex justify-end items-start p-2 sm:p-4 pt-14 pointer-events-none">
-              <div 
-                className="fixed inset-0 bg-black/40 pointer-events-auto cursor-pointer" 
-                onClick={() => setShowUserMenu(false)}
-              />
+          {/* User Profile Menu */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowUserMenu(prev => !prev);
+                setShowThemePicker(false);
+                setShowNotifications(false);
+              }}
+              className="flex items-center gap-1 sm:gap-2 p-1 pr-1.5 sm:pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer active:scale-95 touch-manipulation"
+            >
+              <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs">
+                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'DN'}
+              </div>
+              <div className="hidden lg:block text-left">
+                <p className="text-xs font-semibold text-white leading-none">{user?.name || user?.email?.split('@')[0] || 'User'}</p>
+                <p className="text-[10px] text-cyan-400 font-medium leading-none mt-1 capitalize">User</p>
+              </div>
+              <ChevronDown className="w-3 h-3 text-slate-400 hidden lg:block" />
+            </button>
+
+            {showUserMenu && (
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="relative z-10 pointer-events-auto w-64 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700/80 rounded-xl shadow-2xl p-2 text-xs animate-in fade-in zoom-in-95 duration-150 mr-1 sm:mr-4"
+                className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-1rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl z-50 p-2 text-xs animate-in fade-in zoom-in-95 duration-150"
               >
                 <div className="px-3 py-2 border-b border-slate-800 mb-1">
                   <p className="font-semibold text-white">{company?.name || 'Workspace'}</p>
@@ -463,11 +436,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 </div>
               </div>
-            </div>,
-            document.body
-          )}
-        </>
-      )}
+            )}
+          </div>
+        </div>
+      </div>
     </header>
   );
 };
