@@ -96,8 +96,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   const selectedStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 px-2 sm:px-4 lg:px-6 py-2 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x">
-      <div className="flex items-center justify-between gap-3 min-w-max sm:min-w-0">
+    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80">
+      <div 
+        className="w-full overflow-x-auto no-scrollbar scroll-smooth px-2 sm:px-4 lg:px-6 py-2"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-x',
+          overscrollBehaviorX: 'contain'
+        }}
+      >
+        <div className="flex items-center justify-between gap-3 w-max min-w-full">
         {/* Left: Hamburger 3-lines Icon + Brand */}
         <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 flex-shrink-0 sticky left-0 z-20 bg-slate-950/95 pr-1">
           {/* Main 3-Lines / Hamburger Menu Button */}
@@ -225,7 +233,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Branded Theme Colors Palette Picker (10 Unique Enterprise Colors) */}
           <div className="relative">
             <button
-              onClick={() => setShowThemePicker(!showThemePicker)}
+              onClick={() => {
+                setShowThemePicker(!showThemePicker);
+                setShowNotifications(false);
+                setShowUserMenu(false);
+              }}
               className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
               title="Branded Theme Colors (10 Enterprise Presets)"
               aria-label="Choose Theme Color"
@@ -238,7 +250,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showThemePicker && (
-              <div className="absolute right-0 mt-2 w-72 bg-slate-900/98 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl z-50 p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150">
+              <div className="fixed top-14 right-2 sm:absolute sm:top-full sm:right-0 sm:mt-2 w-[calc(100vw-1rem)] sm:w-72 max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-3.5 text-xs animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between pb-2.5 border-b border-slate-800 mb-2.5">
                   <span className="font-bold text-white flex items-center gap-1.5">
                     <Palette className="w-4 h-4" style={{ color: activeColor.hex }} />
@@ -283,9 +295,11 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               onClick={() => {
                 setShowNotifications(!showNotifications);
+                setShowThemePicker(false);
+                setShowUserMenu(false);
                 if (!showNotifications) fetchAlerts();
               }}
-              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer"
+              className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition-colors relative cursor-pointer active:scale-95"
               title="System Alerts & Order Warnings"
             >
               <Bell className="w-4 h-4" />
@@ -295,7 +309,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-3 text-xs">
+              <div className="fixed top-14 right-2 sm:absolute sm:top-full sm:right-0 sm:mt-2 w-[calc(100vw-1rem)] sm:w-80 max-w-sm bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-3 text-xs animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <span className="font-bold text-white flex items-center gap-1.5">
                     <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> System Alerts
@@ -329,8 +343,12 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Profile Menu */}
           <div className="relative">
             <button
-              onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-2 p-1 pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer"
+              onClick={() => {
+                setShowUserMenu(!showUserMenu);
+                setShowThemePicker(false);
+                setShowNotifications(false);
+              }}
+              className="flex items-center gap-2 p-1 pr-2 rounded-lg bg-slate-900 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer active:scale-95"
             >
               <div className="w-7 h-7 rounded-md bg-gradient-to-tr from-cyan-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs">
                 {user?.email ? user.email.slice(0, 2).toUpperCase() : 'DN'}
@@ -343,7 +361,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 text-xs">
+              <div className="fixed top-14 right-2 sm:absolute sm:top-full sm:right-0 sm:mt-2 w-[calc(100vw-1rem)] sm:w-64 max-w-sm bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 p-2 text-xs animate-in fade-in zoom-in-95 duration-150">
                 <div className="px-3 py-2 border-b border-slate-800 mb-1">
                   <p className="font-semibold text-white">{company?.name || 'Workspace'}</p>
                   <p className="text-[11px] text-slate-400">{user?.email}</p>
@@ -399,6 +417,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
       </div>
+    </div>
+
+      {/* Backdrop overlay for active popups on all screens */}
+      {(showThemePicker || showNotifications || showUserMenu) && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" 
+          onClick={() => {
+            setShowThemePicker(false);
+            setShowNotifications(false);
+            setShowUserMenu(false);
+          }} 
+        />
+      )}
     </header>
   );
 };
