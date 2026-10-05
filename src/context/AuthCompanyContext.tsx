@@ -240,7 +240,11 @@ export const AuthCompanyProvider: React.FC<{ children: ReactNode }> = ({ childre
               setUser(meRes.user);
               if (meRes.company) setCompany(meRes.company);
               await fetchStoresAndOrders();
+            } else {
+              clearSession();
             }
+          } else {
+            clearSession();
           }
         }
       } catch (err) {

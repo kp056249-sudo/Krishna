@@ -634,23 +634,29 @@ export async function generateChatResponse(
   const dedicatedKey = modelConfig?.key() || '';
   const candidateModels = modelConfig?.fallbacks || [selectedModel, 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash'];
 
-  // Grounding metrics
+  // Grounding metrics with in-memory 60s cache for sub-second database overhead
   let liveStats = { orderCount: 0, gmv: 0, lowStock: 0, rtoRate: '0.0' };
   try {
-    const compRef = adminDb.collection('companies').doc(companyId);
-    const [ordersSnap, invSnap] = await Promise.all([
-      compRef.collection('orders').limit(100).get(),
-      compRef.collection('inventory').limit(50).get()
-    ]);
-    const orders = ordersSnap.docs.map(d => d.data());
-    const gmv = orders.reduce((s, o) => s + (o.totalAmount || o.orderTotal || 0), 0);
-    const rtoCount = orders.filter(o => String(o.status).includes('RTO')).length;
-    liveStats = {
-      orderCount: ordersSnap.size,
-      gmv,
-      lowStock: invSnap.docs.filter(d => (d.data().daysOfRunway || 30) < 15).length,
-      rtoRate: ordersSnap.size > 0 ? ((rtoCount / ordersSnap.size) * 100).toFixed(1) : '0.0'
-    };
+    const now = Date.now();
+    if ((global as any).__dn_stats_cache && (now - (global as any).__dn_stats_cache.ts < 60000)) {
+      liveStats = (global as any).__dn_stats_cache.data;
+    } else {
+      const compRef = adminDb.collection('companies').doc(companyId);
+      const [ordersSnap, invSnap] = await Promise.all([
+        compRef.collection('orders').limit(50).get(),
+        compRef.collection('inventory').limit(25).get()
+      ]);
+      const orders = ordersSnap.docs.map(d => d.data());
+      const gmv = orders.reduce((s, o) => s + (o.totalAmount || o.orderTotal || 0), 0);
+      const rtoCount = orders.filter(o => String(o.status).includes('RTO')).length;
+      liveStats = {
+        orderCount: ordersSnap.size,
+        gmv,
+        lowStock: invSnap.docs.filter(d => (d.data().daysOfRunway || 30) < 15).length,
+        rtoRate: ordersSnap.size > 0 ? ((rtoCount / ordersSnap.size) * 100).toFixed(1) : '0.0'
+      };
+      (global as any).__dn_stats_cache = { data: liveStats, ts: now };
+    }
   } catch (dbErr) {
     // Non-blocking
   }
@@ -673,45 +679,49 @@ INSTRUCTIONS:
   let modelUsed = selectedModel;
   let keyUsed = 1;
 
-  // Build candidate key list: Dedicated key first, then other keys from failover pool
-  const allKeys = getAllGeminiKeys();
-  const keysToTry: string[] = [];
-  if (dedicatedKey && dedicatedKey.length > 10) keysToTry.push(dedicatedKey);
-  for (const k of allKeys) {
-    if (!keysToTry.includes(k)) keysToTry.push(k);
+  // Ultra-fast timeout runner (max 6 seconds per call)
+  const callWithTimeout = async (apiKey: string, model: string, promptText: string, timeoutMs = 6000): Promise<string | null> => {
+    try {
+      const client = new GoogleGenAI({ apiKey });
+      const apiPromise = client.models.generateContent({
+        model,
+        contents: [{ role: 'user', parts: [{ text: promptText }] }]
+      });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('TIMEOUT')), timeoutMs)
+      );
+      const res: any = await Promise.race([apiPromise, timeoutPromise]);
+      return res?.text?.trim() || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const fullPrompt = `${systemPrompt}\n\nUser Question: ${userPrompt}`;
+
+  // 1. First priority: Try requested model with its dedicated key (max 6s)
+  if (dedicatedKey && dedicatedKey.length > 10) {
+    const ans = await callWithTimeout(dedicatedKey, selectedModel, fullPrompt, 6000);
+    if (ans && ans.length > 0) {
+      return { answer: ans, modelUsed: selectedModel, keyUsed: 1 };
+    }
   }
 
-  // Attempt generation: Try requested model with its key first
-  for (const apiKey of keysToTry) {
-    for (const m of candidateModels) {
-      try {
-        const client = new GoogleGenAI({ apiKey });
-        const response = await client.models.generateContent({
-          model: m,
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: `${systemPrompt}\n\nUser Question: ${userPrompt}`
-                }
-              ]
-            }
-          ]
-        });
+  // 2. Second priority: Ultra-fast Gemini 3.6 Flash fallback (lightning response <3s)
+  const fastKey = process.env.MODEL_3_KEY || process.env.GEMINI_CHAT_KEY_2 || dedicatedKey || process.env.GEMINI_API_KEY || '';
+  if (fastKey) {
+    const fastAns = await callWithTimeout(fastKey, 'gemini-3.6-flash', fullPrompt, 5000);
+    if (fastAns && fastAns.length > 0) {
+      return { answer: fastAns, modelUsed: 'gemini-3.6-flash', keyUsed: 2 };
+    }
+  }
 
-        if (response.text && response.text.trim().length > 0) {
-          modelUsed = m;
-          keyUsed = keysToTry.indexOf(apiKey) + 1;
-          return {
-            answer: response.text.trim(),
-            modelUsed,
-            keyUsed
-          };
-        }
-      } catch (err: any) {
-        // Continue to next model/key candidate
-      }
+  // 3. Third priority: Try Gemini 3.8 Flash with Model 1 Key
+  const model1Key = process.env.MODEL_1_KEY || process.env.AI_API_KEY || '';
+  if (model1Key && model1Key !== dedicatedKey) {
+    const ans38 = await callWithTimeout(model1Key, 'gemini-3.8-flash', fullPrompt, 5000);
+    if (ans38 && ans38.length > 0) {
+      return { answer: ans38, modelUsed: 'gemini-3.8-flash', keyUsed: 3 };
     }
   }
 

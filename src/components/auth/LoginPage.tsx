@@ -37,11 +37,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     }
   }, []);
 
+  const validateEmail = (input: string): boolean => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(input.trim());
+  };
+
   // ─── Supabase Sign In ───
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
       setError('Please enter both email and password.');
+      return;
+    }
+    if (!validateEmail(cleanEmail)) {
+      setError('Please enter a valid email address (e.g. name@gmail.com).');
       return;
     }
     setLoading(true);
@@ -50,14 +60,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
     try {
       const { data, error: supaError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
+        email: cleanEmail,
         password,
       });
 
       if (supaError) {
+        localStorage.removeItem('datanexus_id_token');
+        localStorage.removeItem('datanexus_auth_user');
         let msg = supaError.message;
         if (msg.includes('Invalid login credentials')) {
-          msg = 'Invalid email or password. Please verify your credentials.';
+          msg = 'Invalid email or password. Please verify your credentials in Supabase.';
         } else if (msg.includes('Email not confirmed')) {
           msg = 'Please confirm your email address. Check your inbox for the activation link.';
         } else if (msg.includes('Too many requests')) {
@@ -66,6 +78,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         setError(msg);
         return;
       }
+
 
       if (data.session) {
         localStorage.setItem('datanexus_id_token', data.session.access_token);
@@ -91,6 +104,15 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   // ─── Supabase Sign Up ───
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!validateEmail(cleanEmail)) {
+      setError('Please enter a valid email address (e.g. name@gmail.com).');
+      return;
+    }
     if (password.length < 6) {
       setError('Password must be at least 6 characters.');
       return;

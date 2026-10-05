@@ -96,20 +96,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   const selectedStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-6 py-2.5">
-      <div className="flex items-center justify-between gap-4">
-        {/* Left: Hamburger 3-lines Icon + Brand & Live TPS Indicator */}
-        <div className="flex items-center gap-2.5 sm:gap-3 lg:gap-5">
-          {/* 3-Dots / Menu Toggle Button */}
+    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 px-2 sm:px-4 lg:px-6 py-2 overflow-x-auto no-scrollbar scroll-smooth touch-pan-x">
+      <div className="flex items-center justify-between gap-3 min-w-max sm:min-w-0">
+        {/* Left: Hamburger 3-lines Icon + Brand */}
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 flex-shrink-0 sticky left-0 z-20 bg-slate-950/95 pr-1">
+          {/* Main 3-Lines / Hamburger Menu Button */}
           <button
             onClick={onToggleMobileMenu}
             aria-label="Toggle Navigation Sidebar"
-            className={`p-2 sm:px-3.5 sm:py-2 rounded-xl border transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-95 group ${
+            className={`p-2 sm:px-3 sm:py-2 rounded-xl border transition-all flex items-center gap-1.5 cursor-pointer shadow-md active:scale-95 group ${
               mobileMenuOpen
-                ? 'bg-cyan-950/80 border-cyan-500/60 text-cyan-300 ring-2 ring-cyan-500/30'
-                : 'bg-slate-900/90 border-slate-800 hover:border-cyan-500/60 text-slate-300 hover:text-white hover:bg-slate-800/90'
+                ? 'bg-cyan-950/90 border-cyan-500/70 text-cyan-300 ring-2 ring-cyan-500/40'
+                : 'bg-slate-900 border-slate-800 hover:border-cyan-500/60 text-slate-200 hover:text-white hover:bg-slate-800'
             }`}
-            title={mobileMenuOpen ? 'Close Menu' : 'Open Navigation Menu (3-Dots)'}
+            title={mobileMenuOpen ? 'Close Menu' : 'Open All Features & Navigation Menu'}
           >
             {mobileMenuOpen ? (
               <>
@@ -118,8 +118,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               </>
             ) : (
               <>
-                <MoreVertical className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-slate-200 group-hover:text-cyan-300">
+                <Menu className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold text-slate-100 group-hover:text-cyan-300">
                   Menu
                 </span>
               </>
@@ -128,15 +128,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           <button 
             onClick={() => onSelectTab('consolidated_dashboard')}
-            className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer"
+            className="flex items-center gap-2 text-left group focus:outline-none cursor-pointer"
           >
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-400/30 group-hover:scale-105 transition-transform">
-              <Zap className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 ring-1 ring-cyan-400/30 group-hover:scale-105 transition-transform flex-shrink-0">
+              <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="font-extrabold text-sm sm:text-base tracking-tight text-white">DATANEXUS</span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 border border-cyan-500/40 text-cyan-300">ENTERPRISE</span>
+                <span className="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded bg-cyan-900/60 border border-cyan-500/40 text-cyan-300">ENTERPRISE</span>
               </div>
               <p className="hidden sm:block text-[11px] text-slate-400 font-medium tracking-tight">Enterprise E-Commerce &amp; Analytics OS</p>
             </div>
@@ -160,7 +160,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Right: Controls & Actions */}
-        <div className="flex items-center gap-2 lg:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0">
           {/* Telegram Support Bot Launch */}
           <button
             onClick={() => onSelectTab('telegram')}
@@ -189,9 +189,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             {currency === 'INR' ? '₹ INR' : '$ USD'}
           </button>
 
-          {/* Store Switcher */}
+          {/* Store Switcher (Shown on desktop, hidden on narrow mobile so navbar doesn't break) */}
           {stores.length > 0 && (
-            <div className="relative hidden md:block">
+            <div className="relative hidden lg:block">
               <select
                 value={selectedStoreId}
                 onChange={(e) => onSelectStore(e.target.value)}

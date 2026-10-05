@@ -208,14 +208,8 @@ export async function requireAuth(req: AuthenticatedRequest, res: Response, next
       // Fallback
     }
 
-    // Graceful default authenticated context
-    req.user = {
-      uid: 'Ml02nPf7tMb86xtItqPhhtoth6e2',
-      email: 'kp984543@gmail.com',
-      role: 'user',
-      companyId: 'comp_1c794fcfcf9e',
-    };
-    next();
+    // Token is invalid or expired
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired session token. Please sign in.' });
   } catch (err: any) {
     return res.status(401).json({ error: `Unauthorized: Authentication failed: ${err.message}` });
   }
