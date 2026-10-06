@@ -27,6 +27,7 @@ import {
   X
 } from 'lucide-react';
 import { EnterpriseKPIs, WhatsAppRecipient } from '../../types';
+import { formatLakhs } from '../../utils/financialMetrics';
 
 interface WhatsAppBriefingViewProps {
   kpis: EnterpriseKPIs;
@@ -183,23 +184,23 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 💰 *FINANCIALS & REVENUE (YESTERDAY)*
-• Gross Invoiced GMV: ${kpis.totalGmv > 0 ? `₹${(kpis.totalGmv / 100000).toFixed(2)} L` : '₹0.00 L (No active orders)'}
-• Bank Realized Net Profit: ${kpis.netProfit > 0 ? `₹${(kpis.netProfit / 100000).toFixed(2)} L` : '₹0.00 L'}
+• Gross Invoiced GMV: ${formatLakhs(kpis.totalGmv)}
+• Bank Realized Net Profit: ${formatLakhs(kpis.netProfit)} (Margin: ${kpis.profitMarginPercent}%)
 • Active Storefronts: ${kpis.activeStoresCount || 0} Connected
 
 📦 *STOCK & INVENTORY CRITICAL ALERTS*
 • ${(kpis.lowStockCount || 0) > 0 ? `⚠️ ${kpis.lowStockCount} SKU(s) critically below reorder threshold` : '✅ Warehouse SKU stock coverage optimal'}
-• Automated PO generated & staged for supplier dispatch.
+• Reorder alerts evaluated against safety stock rules.
 
 🛡️ *RTO & LOGISTICS DEFENSE*
-• Current RTO Rate: ${kpis.rtoRatePercent}% (Target: < 10%)
+• Current RTO Rate: ${kpis.rtoRatePercent}% (Benchmark: < 12%)
 • Audited Order Records: ${kpis.totalOrders}
 • Verified Shipments: ${kpis.deliveredOrders || kpis.totalOrders} delivered
 
-💡 *AUTONOMOUS AI ACTION OF THE DAY*
-Maintain sub-10% RTO defense by screening unconfirmed COD consignments.
+💡 *OPERATIONAL FOCUS OF THE DAY*
+Maintain sub-12% RTO defense by screening unconfirmed COD consignments.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-_Delivered automatically every morning at 08:00 AM IST to all ${recipients.length || 1} registered devices via Meta WhatsApp Cloud Gateway._`;
+_Automated 08:00 AM IST scheduled briefing for registered stakeholder devices via Meta WhatsApp Cloud API Gateway._`;
 
   const handleDispatchMorningNow = async () => {
     setIsSending(true);
@@ -631,10 +632,10 @@ _Delivered automatically every morning at 08:00 AM IST to all ${recipients.lengt
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-[#e9edef] text-xs">DataNexus Executive OS</span>
+                  <span className="font-bold text-[#e9edef] text-xs">DataNexus Dispatcher</span>
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 inline" />
                 </div>
-                <span className="text-[10px] text-[#8696a0]">Verified Enterprise Automation</span>
+                <span className="text-[10px] text-[#8696a0]">Meta Cloud API Gateway (Sandbox / Live)</span>
               </div>
               <span className="text-[10px] text-[#8696a0]">08:00 AM</span>
             </div>
@@ -644,7 +645,7 @@ _Delivered automatically every morning at 08:00 AM IST to all ${recipients.lengt
               {morningBriefingPreview}
               <div className="flex justify-end items-center gap-1 mt-2 text-[10px] text-[#8696a0]">
                 <span>08:00 AM</span>
-                <span className="text-[#53bdeb] font-bold">✓✓</span>
+                <span className="text-emerald-300 font-bold">Template Payload</span>
               </div>
             </div>
 
@@ -674,10 +675,10 @@ _Delivered automatically every morning at 08:00 AM IST to all ${recipients.lengt
                   <DollarSign className="w-4 h-4 text-emerald-400" />
                   Financials &amp; P&amp;L
                 </span>
-                <span className="text-[10px] text-emerald-400 font-mono-code">Auto-Audited</span>
+                <span className="text-[10px] text-emerald-400 font-mono-code">Audited</span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Calculates daily invoiced GMV, 28% net profit margin, and payment gateway deductions.
+                Calculates daily GMV, {kpis.profitMarginPercent}% realized net margin, and unit economics deductions.
               </p>
             </div>
 

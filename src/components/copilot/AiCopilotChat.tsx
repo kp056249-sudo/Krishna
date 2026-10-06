@@ -82,7 +82,7 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
   const [commandInput, setCommandInput] = useState('');
   const [isExecuting, setIsExecuting] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [whatsappPhone, setWhatsappPhone] = useState('+91 9250509070');
+  const [whatsappPhone, setWhatsappPhone] = useState('+91 98*** **070');
   const [notification, setNotification] = useState<string | null>(null);
 
   // Terminal stream & history states

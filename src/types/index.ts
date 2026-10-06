@@ -64,6 +64,7 @@ export type NavigationTab =
   | 'ml_studio'
   | 'xai_explainer'
   | 'linear_regression'
+  | 'sales_forecast'
   | 'pipeline_builder'
   | 'synthetic_data'
   | 'database_connectors'

@@ -328,7 +328,7 @@ Provide a natural, concise, professional spoken voice response (in easy conversa
     const teleMsg = `📞 <b>Gemini Live Operations Dispatch</b>\n\n<b>Command:</b> "${userTranscript}"\n<b>Response:</b> ${spokenResponse}\n\n<b>Store Intelligence:</b>\n${summaryLines || '• All systems running within safe thresholds.'}`;
     sendTelegramOwnerNotification(teleMsg).catch(() => {});
 
-    const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070';
+    const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';
     const waLines = executedActions.map(a => `• *${a.title}:* ${a.summary}`).join('\n');
     const waMsg = `*📞 Gemini Live Operations Dispatch*\n\n*Command:* "${userTranscript}"\n*Response:* ${spokenResponse}\n\n*Store Intelligence:*\n${waLines || '• All systems running within safe thresholds.'}`;
     sendWhatsAppMessage(companyId, founderPhone, waMsg).catch(() => {});

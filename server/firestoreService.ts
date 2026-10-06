@@ -366,8 +366,8 @@ export const adminAuth = {
     if (idToken && (idToken.startsWith('dntok_') || idToken === 'local_founder_token' || idToken.startsWith('session_'))) {
       return {
         uid: 'Ml02nPf7tMb86xtItqPhhtoth6e2',
-        email: 'kp056249@gmail.com',
-        name: 'Krishna Pandey',
+        email: process.env.ADMIN_EMAIL || 'founder@datanexus.io',
+        name: 'Executive Lead',
       };
     }
 
@@ -437,7 +437,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1011',
         orderNumber: '1011',
         customerName: 'Aarav Malhotra',
-        customerPhone: '919250509070',
+        customerPhone: '919810112233',
         customerEmail: 'aarav.malhotra@gmail.com',
         productName: 'Ultra-Comfort Premium Kurta Set - Navy',
         quantity: 2,
@@ -460,7 +460,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1012',
         orderNumber: '1012',
         customerName: 'Priya Sundaram',
-        customerPhone: '919250509070',
+        customerPhone: '919820223344',
         customerEmail: 'priya.s@yahoo.com',
         productName: 'Pure Kanjeevaram Silk Saree - Ruby Red',
         quantity: 1,
@@ -483,7 +483,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1013',
         orderNumber: '1013',
         customerName: 'Rohan Mehra',
-        customerPhone: '919250509070',
+        customerPhone: '919830334455',
         customerEmail: 'rohan.mehra@hotmail.com',
         productName: 'Raw Denim Slim-Fit Stretch Jeans - Indigo',
         quantity: 2,
@@ -506,7 +506,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1014',
         orderNumber: '1014',
         customerName: 'Sunita Chawla',
-        customerPhone: '919250509070',
+        customerPhone: '919840445566',
         customerEmail: 'sunita.c@gmail.com',
         productName: 'Wireless Active Noise-Cancelling Earbuds Pro',
         quantity: 1,
@@ -529,7 +529,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1015',
         orderNumber: '1015',
         customerName: 'Aditya Kashyap',
-        customerPhone: '919250509070',
+        customerPhone: '919850556677',
         customerEmail: 'aditya.k@gmail.com',
         productName: 'Designer Chronograph Leather Watch',
         quantity: 1,
@@ -552,7 +552,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1016',
         orderNumber: '1016',
         customerName: 'Deepak Verma',
-        customerPhone: '919250509070',
+        customerPhone: '919860667788',
         customerEmail: 'deepak.v@gmail.com',
         productName: 'Smart Fitness Tracker Band 6',
         quantity: 1,
@@ -575,7 +575,7 @@ export async function seedEnterpriseLiveDataset(companyId: string, ownerUid: str
         id: 'ORD-1017',
         orderNumber: '1017',
         customerName: 'Meera Nambiar',
-        customerPhone: '919250509070',
+        customerPhone: '919870778899',
         customerEmail: 'meera.n@gmail.com',
         productName: 'Organic Cold-Pressed Skincare Gift Box',
         quantity: 1,
@@ -760,7 +760,7 @@ export async function ensureCompanyInitialized(
     await compRef.collection('whatsapp').doc('state').set({
       dailyBriefingEnabled: true,
       scheduledTime: '08:00 AM IST',
-      targetPhone: process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070',
+      targetPhone: process.env.FOUNDER_WHATSAPP_PHONE || '919800000000',
       lastSent: null,
       updatedAt: new Date().toISOString(),
     });

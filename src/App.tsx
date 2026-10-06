@@ -32,6 +32,7 @@ import { MlStudio } from './components/analytics/MlStudio';
 import { XaiExplainer } from './components/analytics/XaiExplainer';
 import { AutoEdaProfiling } from './components/analytics/AutoEdaProfiling';
 import { LinearRegressionWorkspace } from './components/analytics/LinearRegressionWorkspace';
+import { SalesForecastPage } from './components/analytics/SalesForecastPage';
 import { NoCodePipelineBuilder } from './components/analytics/NoCodePipelineBuilder';
 import { SqlHelperStudio } from './components/analytics/SqlHelperStudio';
 import { SyntheticDataGenerator } from './components/analytics/SyntheticDataGenerator';
@@ -50,6 +51,9 @@ import { TeamRbacView } from './components/company/TeamRbacView';
 import { SubscriptionBillingView } from './components/company/SubscriptionBillingView';
 import { CompanyProfileView } from './components/company/CompanyProfileView';
 import { ApiKeysConfigCenter } from './components/company/ApiKeysConfigCenter';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { AboutProjectModal } from './components/common/AboutProjectModal';
+import { calculateConsolidatedKPIs } from './utils/financialMetrics';
 
 import { Sparkles, Key, CheckCircle2, ShieldCheck } from 'lucide-react';
 
@@ -153,6 +157,7 @@ export default function App() {
   }, [stores, selectedStoreId]);
 
   const [searchOpen, setSearchOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -194,20 +199,22 @@ export default function App() {
     );
   }
 
-  const realKPIs: EnterpriseKPIs = {
-    totalGmv: orders.reduce((sum, o) => sum + (o.totalAmount || o.orderTotal || 0), 0),
-    netProfit: Math.round(orders.reduce((sum, o) => sum + (o.netProfit || (o.totalAmount || o.orderTotal || 0) * (o.status === 'DELIVERED' ? 0.28 : 0)), 0)),
-    profitMarginPercent: orders.length > 0 ? 28 : 0,
-    totalOrders: orders.length,
-    deliveredOrders: orders.filter((o) => o.status === 'DELIVERED').length,
-    rtoRatePercent: orders.length > 0 ? Math.round((orders.filter((o) => String(o.status).includes('RTO') || (o.rtoRiskScore && o.rtoRiskScore > 75)).length / orders.length) * 100) : 0,
-    rtoLossAmount: Math.round(orders.filter((o) => String(o.status).includes('RTO')).reduce((sum, o) => sum + (o.totalAmount || o.orderTotal || 0) * 0.35, 0)),
-    blendedRoas: orders.length > 0 ? 4.85 : 0,
-    averageOrderValue: orders.length > 0 ? Math.round(orders.reduce((sum, o) => sum + (o.totalAmount || o.orderTotal || 0), 0) / orders.length) : 0,
-    tpsCurrent: stores.length > 0 ? 2420 : 0,
+  const calculatedKPIs = useMemo(() => calculateConsolidatedKPIs(orders), [orders]);
+
+  const realKPIs: EnterpriseKPIs = useMemo(() => ({
+    totalGmv: calculatedKPIs.totalGmv,
+    netProfit: calculatedKPIs.netProfit,
+    profitMarginPercent: calculatedKPIs.profitMarginPercent,
+    totalOrders: calculatedKPIs.totalOrders,
+    deliveredOrders: calculatedKPIs.deliveredOrders,
+    rtoRatePercent: calculatedKPIs.rtoRatePercent,
+    rtoLossAmount: calculatedKPIs.rtoLossAmount,
+    blendedRoas: calculatedKPIs.blendedRoas,
+    averageOrderValue: calculatedKPIs.averageOrderValue,
+    tpsCurrent: stores.length > 0 ? 45 : 0,
     activeStoresCount: stores.length,
     activeCouriersCount: 5,
-  };
+  }), [calculatedKPIs, stores.length]);
 
   const renderActiveScreen = () => {
 
@@ -282,6 +289,8 @@ export default function App() {
         return <AutoEdaProfiling />;
       case 'linear_regression':
         return <LinearRegressionWorkspace />;
+      case 'sales_forecast':
+        return <SalesForecastPage />;
       case 'pipeline_builder':
         return <NoCodePipelineBuilder />;
       case 'sql_helper':
@@ -360,6 +369,7 @@ export default function App() {
           setActiveTab('real_ai_page');
           setMobileMenuOpen(false);
         }}
+        onOpenAbout={() => setAboutOpen(true)}
         mobileMenuOpen={mobileMenuOpen}
         onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
       />
@@ -388,13 +398,15 @@ export default function App() {
         />
 
         <main
-          className={`flex-1 p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
+          className={`flex-1 p-3 sm:p-5 lg:p-6 pb-28 sm:pb-24 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
             mobileMenuOpen
               ? 'select-none pointer-events-none opacity-40 scale-[0.99]'
               : 'opacity-100 scale-100'
           }`}
         >
-          {renderActiveScreen()}
+          <ErrorBoundary fallbackTitle="DataNexus Analytics Workspace Error">
+            {renderActiveScreen()}
+          </ErrorBoundary>
         </main>
       </div>
 
@@ -408,14 +420,22 @@ export default function App() {
         }}
       />
 
-      {/* Floating Copilot Button */}
+      {/* About Project & Architecture Audit Modal */}
+      <AboutProjectModal
+        isOpen={aboutOpen}
+        onClose={() => setAboutOpen(false)}
+      />
+
+      {/* Floating Copilot Button - Compact and non-intrusive */}
       {activeTab !== 'real_ai_page' && activeTab !== 'ai_copilot' && (
         <button
           onClick={() => setActiveTab('real_ai_page')}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-cyan-600 via-blue-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-white font-bold text-xs shadow-2xl shadow-cyan-500/30 border border-cyan-400/40 hover:scale-105 transition-all cursor-pointer"
+          aria-label="Open AI Copilot"
+          title="Open AI Copilot & Voice"
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900/95 hover:bg-slate-800 text-cyan-400 hover:text-white font-bold text-xs shadow-xl border border-cyan-500/40 hover:border-cyan-400 backdrop-blur-md transition-all cursor-pointer group"
         >
-          <Sparkles className="w-4 h-4 animate-spin" />
-          <span>Real AI &amp; Gemini Call</span>
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
+          <span className="hidden sm:inline font-mono">AI Copilot</span>
         </button>
       )}
     </div>

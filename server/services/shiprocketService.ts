@@ -162,7 +162,7 @@ export async function getShiprocketStatus(companyId: string): Promise<any> {
   const envEmail = process.env.SHIPROCKET_EMAIL;
 
   let connected = false;
-  let email = envEmail || 'kp056249@gmail.com';
+  let email = envEmail || 'logistics@datanexus.io';
   let lastSyncAt = new Date().toISOString();
 
   if (intDoc.exists) {

@@ -88,19 +88,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       items: [
         { id: 'real_ai_page', label: 'Real AI Studio & Gemini', icon: Sparkles, badge: 'Gemini 2.5' },
         { id: 'data_visualization', label: 'BI Visualization Studio', icon: BarChart3 },
-        { id: 'ml_studio', label: 'AutoML & Model Lab', icon: Cpu, badge: '6 Models' },
+        { id: 'ml_studio', label: 'AutoML & Model Lab', icon: Cpu, badge: 'ML Pipeline' },
         { id: 'xai_explainer', label: 'Explainable AI (SHAP)', icon: BrainCircuit },
         { id: 'auto_eda', label: 'Auto EDA & Profiling', icon: PieChart },
         { id: 'linear_regression', label: 'Linear Regression Lab', icon: LineChart },
+        { id: 'sales_forecast', label: 'Sales & Demand Forecast', icon: TrendingUp, badge: 'MAPE' },
       ],
     },
     {
       title: 'DATA PIPELINES & SQL IDE',
       items: [
-        { id: 'pipeline_builder', label: 'No-Code ETL Pipelines', icon: GitFork, badge: '2.4k TPS' },
+        { id: 'pipeline_builder', label: 'No-Code ETL Pipelines', icon: GitFork, badge: 'ETL' },
         { id: 'sql_helper', label: 'SQL Studio & NL-to-SQL', icon: Terminal },
         { id: 'synthetic_data', label: 'Synthetic Data Generator', icon: Database },
-        { id: 'database_connectors', label: 'Database SQL Connectors', icon: Database, badge: 'Enterprise' },
+        { id: 'database_connectors', label: 'Database SQL Connectors', icon: Database, badge: 'Postgres' },
         { id: 'google_sheets', label: 'Google Sheets OAuth', icon: FileSpreadsheet, badge: 'OAuth 2.0' },
       ],
     },

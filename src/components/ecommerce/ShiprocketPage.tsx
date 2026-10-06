@@ -34,7 +34,7 @@ export const ShiprocketPage: React.FC = () => {
   const [notification, setNotification] = useState<string | null>(null);
 
   // Connect form state
-  const [emailInput, setEmailInput] = useState('kp056249@gmail.com');
+  const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,7 +87,7 @@ export const ShiprocketPage: React.FC = () => {
     try {
       const res = await api.post('/api/shiprocket/connect', {
         email: emailInput.trim(),
-        password: passwordInput || 'hJQZSulr3kR9f$D5RffQ#px*90%NPC89',
+        password: passwordInput,
       });
       if (res.success) {
         setNotification('Shiprocket logistics account connected successfully.');
@@ -288,7 +288,9 @@ export const ShiprocketPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 text-xs">
               <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800">
                 <span className="text-slate-500 block mb-1">Account Email</span>
-                <span className="font-mono-code font-bold text-white">{status?.email || 'kp056249@gmail.com'}</span>
+                <span className="font-mono-code font-bold text-white">
+                  {status?.email ? status.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'logistics@datanexus.io'}
+                </span>
               </div>
               <div className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800">
                 <span className="text-slate-500 block mb-1">Token Validity</span>

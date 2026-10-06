@@ -12,6 +12,9 @@ process.env.SHOPIFY_CLIENT_SECRET = 'shpss_secret_key_2026';
 
 import { app } from '../server';
 import { encryptSecret, decryptSecret, getEncryptionKey } from '../server/firestoreService';
+import { calculateConsolidatedKPIs } from '../server/utils/financialMetrics.js';
+import { executeReadOnlyQuery } from '../server/sqlEngine.js';
+import { getBenchmarkDataset } from '../server/data/ecommerceDataset.js';
 
 console.log('================================================================');
 console.log('DATANEXUS REAL INTEGRATION & SECURITY TEST SUITE (SUPERTEST)');
@@ -302,6 +305,44 @@ async function runTestSuite() {
     const res = await request(app).post('/api/webhooks/shiprocket').send({ event: 'tracking_update', awb: '123' });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.received, true);
+  });
+
+  // ---------------------------------------------------------------------------
+  // SUITE 9: ADVANCED UNIT ECONOMICS, BENCHMARK DATASET & SQL SECURITY
+  // ---------------------------------------------------------------------------
+  console.log('\n[9] UNIT ECONOMICS, BENCHMARK DATASET & SQL AST GUARDS');
+
+  runSyncTest('Consolidated KPI calculation matches unit economics formula across order book', () => {
+    const mockOrders = [
+      { totalAmount: 2000, paymentMode: 'COD', status: 'DELIVERED' },
+      { totalAmount: 3000, paymentMode: 'PREPAID', status: 'DELIVERED' },
+      { totalAmount: 1500, paymentMode: 'COD', status: 'RTO_DELIVERED' },
+    ];
+    const kpis = calculateConsolidatedKPIs(mockOrders);
+    assert.strictEqual(kpis.totalOrders, 3);
+    assert.strictEqual(kpis.deliveredOrders, 2);
+    assert.strictEqual(kpis.rtoOrdersCount, 1);
+    assert.strictEqual(kpis.totalGmv, 6500);
+    assert.ok(kpis.netProfit > 0);
+  });
+
+  await runAsyncTest('SQL AST Guard permits SELECT & CTE WITH but strictly rejects DDL/DML injection', async () => {
+    // Read-only query should succeed
+    const validRes = await executeReadOnlyQuery('comp_test', 'SELECT id, order_number FROM orders LIMIT 2;');
+    assert.strictEqual(validRes.success, true);
+    assert.ok(Array.isArray(validRes.rows));
+
+    // Malicious injection attempt must fail
+    const attackRes = await executeReadOnlyQuery('comp_test', 'DROP TABLE orders;');
+    assert.strictEqual(attackRes.success, false);
+    assert.ok(attackRes.error.includes('SECURITY VIOLATION') || attackRes.error.includes('SELECT'));
+  });
+
+  runSyncTest('10,000-Order benchmark dataset is deterministic and fully populated', () => {
+    const dataset = getBenchmarkDataset();
+    assert.strictEqual(dataset.length, 10000);
+    assert.ok(dataset[0].orderNumber.length > 0);
+    assert.ok(['Tier 1', 'Tier 2', 'Tier 3'].includes(dataset[0].pincodeTier));
   });
 
   console.log('\n================================================================');

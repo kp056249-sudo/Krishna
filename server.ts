@@ -942,7 +942,7 @@ app.post('/api/whatsapp/test', requireAuth, async (req: AuthenticatedRequest, re
   const { recipientPhone } = req.body;
   const result = await whatsappService.sendWhatsAppMessage(
     req.user!.companyId,
-    recipientPhone || process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070',
+    recipientPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000',
     '🧪 *DataNexus Gateway Test*\nYour Meta WhatsApp Cloud API connection is verified and active.'
   );
   if (!result.success) return res.status(400).json(result);
@@ -951,7 +951,7 @@ app.post('/api/whatsapp/test', requireAuth, async (req: AuthenticatedRequest, re
 
 app.post('/api/whatsapp/send-otp', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { phone, amount, orderNumber, pincode } = req.body;
-  const targetPhone = phone || process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070';
+  const targetPhone = phone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';
   const otpCode = Math.floor(100000 + Math.random() * 900000);
   const msg = `🛡️ *DataNexus High-Risk COD Verification*\nOrder #${orderNumber || '1016'} (Amount: ₹${amount || '2,499'} | Pincode: ${pincode || '800001'}).\n\nYour 1-tap delivery confirmation code is *${otpCode}*.\nOr convert to Prepaid instantly and get *₹50 FLAT OFF*: https://pay.datanexus.io/c/${orderNumber || '1016'}`;
 
@@ -979,7 +979,7 @@ app.get('/api/whatsapp/recipients', requireAuth, async (req: AuthenticatedReques
 
     // Auto-seed default founder contact if collection is empty
     if (recipients.length === 0) {
-      const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070';
+      const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';
       let clean = founderPhone.replace(/\D/g, '');
       if (clean.length === 10) clean = `91${clean}`;
       const defaultDoc = {
@@ -2194,7 +2194,7 @@ const systemHealthHandler = async (req: Request, res: Response) => {
   results.push({
     name: 'Meta WhatsApp Cloud API v21.0',
     status: whatsappOk ? 'healthy' : 'missing',
-    phone: '+919250509070'
+    phone: process.env.WHATSAPP_DISPLAY_PHONE || '+91 98*** **070'
   });
 
   // 4. Razorpay Payments Check
@@ -2216,7 +2216,7 @@ const systemHealthHandler = async (req: Request, res: Response) => {
     },
     whatsapp: {
       status: whatsappOk ? 'OK' : 'MISSING',
-      message: 'Meta Cloud API v21.0 Active (+919250509070)'
+      message: 'Meta Cloud API v21.0 Active'
     },
     razorpay: {
       status: razorpayOk ? 'OK' : 'MISSING',

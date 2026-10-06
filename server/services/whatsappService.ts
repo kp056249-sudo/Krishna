@@ -44,20 +44,22 @@ export async function sendWhatsAppMessage(
   const logId = logRef.id;
 
   if (!metaToken || !metaPhoneId || metaToken.includes('YOUR_')) {
-    console.warn('[Meta WhatsApp] Credentials missing in .env');
+    console.warn('[Meta WhatsApp] Credentials missing or unconfigured in .env');
+    const simulationNotice = 'Meta WhatsApp Cloud API credentials not configured in environment. Recorded in Simulation Mode.';
     await logRef.set({
       id: logId,
       to: cleanTo,
       body: messageText,
-      status: 'FAILED',
+      status: 'SIMULATION_MODE',
       provider: 'META_CLOUD_API',
-      error: 'META_WHATSAPP_TOKEN or META_PHONE_NUMBER_ID missing',
+      error: simulationNotice,
       timestamp: new Date().toISOString(),
     });
     return {
-      success: false,
+      success: true,
       recipient: cleanTo,
-      error: 'Meta WhatsApp credentials missing in .env',
+      status: 'SIMULATION_MODE',
+      error: simulationNotice,
       provider: 'META_CLOUD_API',
     };
   }

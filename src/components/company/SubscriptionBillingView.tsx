@@ -31,7 +31,7 @@ export const SubscriptionBillingView: React.FC = () => {
     keyId: string;
   } | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking'>('upi');
-  const [upiId, setUpiId] = useState('kp9250509070@okhdfcbank');
+  const [upiId, setUpiId] = useState('demo-merchant@okhdfcbank');
   const [cardNumber, setCardNumber] = useState('4111 2222 3333 4444');
   const [cardExpiry, setCardExpiry] = useState('12/28');
   const [cardCvv, setCardCvv] = useState('786');
@@ -191,26 +191,28 @@ export const SubscriptionBillingView: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-slate-900 border border-slate-800">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 bg-cyan-950/80 border border-cyan-800/50 px-2 py-0.5 rounded">
-              Subscription &amp; Billing
+            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-950/80 border border-amber-800/50 px-2 py-0.5 rounded">
+              Razorpay Test Mode (Sandbox)
             </span>
-            <span className="text-xs text-slate-400">Razorpay Cryptographic Verification</span>
+            <span className="text-xs text-slate-400">Cryptographic Signature Verification</span>
           </div>
           <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
             Subscription Plans &amp; Invoices
           </h1>
           <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-            Predictable transparent billing designed to scale from zero to ₹100 Crore enterprise volume with high return on investment.
+            Transparent e-commerce analytics tiers with instantaneous sandbox activation.
           </p>
         </div>
 
         <div className="text-right">
-          <p className="text-[10px] text-slate-400">Current Active Tier</p>
+          <p className="text-[10px] text-slate-400">Current Plan Status</p>
           <p className="text-base font-black text-cyan-400 font-mono-code">{activePlanName}</p>
-          {company?.subscriptionExpiresAt && (
+          {company?.subscriptionExpiresAt ? (
             <p className="text-[10px] text-slate-500">
               Valid until: {new Date(company.subscriptionExpiresAt).toLocaleDateString()}
             </p>
+          ) : (
+            <p className="text-[10px] text-emerald-400">Sandbox Active (Test Mode)</p>
           )}
         </div>
       </div>

@@ -50,7 +50,7 @@ export async function executeDailyBriefing(companyId: string, specificPhone?: st
     }
 
     if (targetPhones.length === 0) {
-      targetPhones = [state?.targetPhone || process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070'];
+      targetPhones = [state?.targetPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000'];
     }
 
     // Deduplicate

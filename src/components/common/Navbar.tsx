@@ -22,7 +22,8 @@ import {
   Palette,
   Check,
   MoreVertical,
-  Send
+  Send,
+  Info
 } from 'lucide-react';
 import { StoreAccount } from '../../types';
 import { useAuthCompany } from '../../context/AuthCompanyContext';
@@ -39,6 +40,7 @@ interface NavbarProps {
   onToggleCurrency: () => void;
   onOpenSearch: () => void;
   onOpenCopilot: () => void;
+  onOpenAbout?: () => void;
   mobileMenuOpen?: boolean;
   onToggleMobileMenu?: () => void;
 }
@@ -63,6 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleCurrency,
   onOpenSearch,
   onOpenCopilot,
+  onOpenAbout,
   mobileMenuOpen = false,
   onToggleMobileMenu,
 }) => {
@@ -199,6 +202,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             {currency === 'INR' ? '₹' : '$'}
           </button>
+
+          {/* About Project & Architecture Audit Button */}
+          {onOpenAbout && (
+            <button
+              onClick={onOpenAbout}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-500/50 text-cyan-400 hover:text-white text-xs font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+              title="View Architecture, Real vs Simulation Disclosure, and Tech Stack"
+            >
+              <Info className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="hidden sm:inline">About</span>
+            </button>
+          )}
 
           {/* Store Switcher (Shown on desktop) */}
           {stores.length > 0 && (
