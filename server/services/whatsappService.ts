@@ -132,7 +132,11 @@ export async function sendWhatsAppMessage(
     } else {
       let errMsg = data.error?.message || 'Meta API delivery rejected';
       if (data.error?.code === 190) {
-        errMsg = 'Meta OAuth Error 190: Access token has expired. Please paste your fresh Meta token in "Meta Token & Phone Config".';
+        errMsg = 'Meta OAuth Error 190: Access token has expired. Please check META_WHATSAPP_TOKEN in .env.';
+      } else if (data.error?.code === 100 && (cleanTo === '919250509070' || data.error?.message?.includes('Invalid parameter'))) {
+        errMsg = 'Meta WhatsApp Error: Cannot send message to sender business number (+91 9250509070) itself. Please enter a different recipient phone number.';
+      } else if (data.error?.code === 131058) {
+        errMsg = 'Meta Template Notice: hello_world template is restricted to public test numbers. Custom verified numbers must send standard briefing text or approved business templates.';
       } else if (data.error?.code === 131030) {
         errMsg = `Meta Sandbox Error 131030: +${cleanTo} is not in your Meta Developer allowed test numbers list.`;
       }
