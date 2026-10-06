@@ -69,6 +69,8 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
   const [newTokenInput, setNewTokenInput] = useState('');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
+  const [isTestingToken, setIsTestingToken] = useState(false);
+  const [tokenTestStatus, setTokenTestStatus] = useState<any>(null);
 
   useEffect(() => {
     fetchLogs();
@@ -134,6 +136,27 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
     } finally {
       setIsUpdatingConfig(false);
       setTimeout(() => setStatusMessage(null), 5000);
+    }
+  };
+
+  const handleTestToken = async () => {
+    setIsTestingToken(true);
+    setTokenTestStatus(null);
+    try {
+      const res = await api.post('/api/whatsapp/config/test', {
+        token: newTokenInput.trim() || undefined
+      });
+      setTokenTestStatus(res);
+      if (res.valid) {
+        setStatusMessage(`✅ Meta Token is LIVE! Connected to ${res.phone || 'WhatsApp Phone'}`);
+      } else {
+        setStatusMessage(`❌ Meta Token Error: ${res.error}`);
+      }
+    } catch (e: any) {
+      setTokenTestStatus({ valid: false, error: e.message });
+      setStatusMessage(`Error testing token: ${e.message}`);
+    } finally {
+      setIsTestingToken(false);
     }
   };
 
@@ -417,14 +440,117 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setShowConfigModal(true)}
-              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+              type="button"
+              onClick={() => setShowConfigModal(!showConfigModal)}
+              className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                showConfigModal
+                  ? 'bg-amber-950/80 border-amber-600 text-amber-300 shadow-md'
+                  : 'bg-slate-900 hover:bg-slate-800 border-slate-700 hover:border-emerald-500/50 text-slate-200 hover:text-white'
+              }`}
             >
               <Key className="w-3.5 h-3.5 text-amber-400" />
-              <span>Meta Token &amp; Phone Config</span>
+              <span>{showConfigModal ? 'Close Gateway Config' : 'Meta Token & Phone Config'}</span>
             </button>
           </div>
         </div>
+
+        {/* INLINE EXPANDABLE META GATEWAY CONFIGURATION PANEL */}
+        {showConfigModal && (
+          <div className="p-5 rounded-xl bg-slate-950/95 border border-amber-500/50 shadow-2xl space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Key className="w-4 h-4 text-amber-400" />
+                <h3 className="text-xs font-bold text-white uppercase tracking-wider">Meta WhatsApp Cloud Gateway Configuration</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(false)}
+                className="text-slate-400 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
+              <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">PHONE NUMBER ID</span>
+                <span className="text-white font-bold">{gatewayConfig?.phoneId || '1398161436704734'}</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">WABA ID</span>
+                <span className="text-white font-bold">{gatewayConfig?.wabaId || '2142971689587665'}</span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">TOKEN STATUS</span>
+                <span className={gatewayConfig?.hasToken ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
+                  {gatewayConfig?.maskedToken || 'Configured'}
+                </span>
+              </div>
+              <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">APPROVED TEMPLATE</span>
+                <span className="text-cyan-400 font-bold">hello_world (en_US)</span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                <span>Paste New Meta Access Token (From developers.facebook.com &gt; WhatsApp &gt; API Setup):</span>
+                <span className="text-[10px] text-amber-400 font-mono">Token expires every 24h on test apps</span>
+              </label>
+              <textarea
+                rows={2}
+                value={newTokenInput}
+                onChange={(e) => setNewTokenInput(e.target.value)}
+                placeholder="Paste fresh EAAG... or EAAN... access token here"
+                className="w-full bg-slate-900 border border-slate-700 text-slate-100 text-xs font-mono rounded-xl p-3 focus:border-emerald-500 outline-none"
+              />
+            </div>
+
+            {tokenTestStatus && (
+              <div className={`p-3 rounded-lg text-xs font-mono border ${
+                tokenTestStatus.valid
+                  ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
+                  : 'bg-red-950/60 border-red-800 text-red-300'
+              }`}>
+                {tokenTestStatus.valid ? (
+                  <p>✅ Meta Token is LIVE! Verified Phone: {tokenTestStatus.phone || 'Connected'} (Rating: {tokenTestStatus.qualityRating || 'GREEN'})</p>
+                ) : (
+                  <p>❌ Meta Validation Failed: {tokenTestStatus.error} {tokenTestStatus.code ? `(Error Code: ${tokenTestStatus.code})` : ''}</p>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              <button
+                type="button"
+                disabled={isTestingToken}
+                onClick={handleTestToken}
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                {isTestingToken ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                <span>Test Token With Meta API</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isUpdatingConfig || !newTokenInput.trim()}
+                  onClick={handleUpdateConfig}
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950 cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdatingConfig ? 'Saving & Activating...' : 'Save & Activate Token'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Action One-Tap Commands */}
         <div className="flex flex-wrap items-center gap-2">
@@ -553,88 +679,37 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
               {aiActionResult.aiResponse}
             </div>
 
-            {/* WhatsApp Dispatch Confirmation */}
+            {/* WhatsApp Dispatch Status Banner */}
             {aiActionResult.dispatched && (
-              <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-xs flex items-center justify-between font-mono">
-                <div className="flex items-center gap-2">
-                  <Smartphone className="w-4 h-4 text-emerald-400" />
-                  <span>WhatsApp Dispatched to +{aiActionResult.recipientPhone}</span>
+              aiActionResult.dispatchResult?.success ? (
+                <div className="p-3 rounded-lg bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-xs flex items-center justify-between font-mono">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="w-4 h-4 text-emerald-400" />
+                    <span>WhatsApp Dispatched to +{aiActionResult.recipientPhone}</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 font-bold">
+                    {aiActionResult.dispatchResult?.status || 'SENT'} (SID: {aiActionResult.dispatchResult?.sid?.substring(0, 15) || 'Verified'})
+                  </span>
                 </div>
-                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800">
-                  {aiActionResult.dispatchResult?.status || 'SENT'} (SID: {aiActionResult.dispatchResult?.sid?.substring(0, 15) || 'Verified'})
-                </span>
-              </div>
+              ) : (
+                <div className="p-3 rounded-lg bg-amber-950/40 border border-amber-600/70 text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <span>Meta Cloud API: {aiActionResult.dispatchResult?.error || 'Delivery not completed'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigModal(true)}
+                    className="self-start sm:self-auto px-3 py-1 rounded-lg bg-amber-900/80 hover:bg-amber-800 border border-amber-600 text-amber-100 text-[11px] font-bold cursor-pointer transition-colors"
+                  >
+                    Paste New Meta Token
+                  </button>
+                </div>
+              )
             )}
           </div>
         )}
       </div>
-
-      {/* Meta Token & Phone Configuration Modal */}
-      {showConfigModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2">
-                <Key className="w-5 h-5 text-amber-400" />
-                <h3 className="text-sm font-bold text-white">Meta WhatsApp Cloud Gateway Configuration</h3>
-              </div>
-              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-white p-1">✕</button>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 font-mono text-[11px]">
-                <div className="flex justify-between text-slate-400">
-                  <span>Phone Number ID:</span>
-                  <span className="text-white font-bold">{gatewayConfig?.phoneId || '1398161436704734'}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>WABA ID:</span>
-                  <span className="text-white font-bold">{gatewayConfig?.wabaId || '2142971689587665'}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Token Status:</span>
-                  <span className="text-emerald-400 font-bold">{gatewayConfig?.maskedToken || 'Configured'}</span>
-                </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Approved Template:</span>
-                  <span className="text-cyan-400 font-bold">hello_world (en_US)</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Paste New Meta Access Token (From developers.facebook.com):
-                </label>
-                <textarea
-                  rows={3}
-                  value={newTokenInput}
-                  onChange={(e) => setNewTokenInput(e.target.value)}
-                  placeholder="Paste EAAG... or EAAN... access token here"
-                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs font-mono rounded-xl p-3 focus:border-emerald-500 outline-none"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowConfigModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  disabled={isUpdatingConfig || !newTokenInput.trim()}
-                  onClick={handleUpdateConfig}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  {isUpdatingConfig ? 'Saving...' : 'Save & Activate Token'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ========================================================================= */}
       {/* RECIPIENT MANAGEMENT & AUTO-MESSAGE SECTION (Add / Remove Numbers)        */}

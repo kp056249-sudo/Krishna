@@ -1009,6 +1009,42 @@ app.post('/api/whatsapp/config', requireAuth, async (req: AuthenticatedRequest, 
   });
 });
 
+app.post('/api/whatsapp/config/test', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const token = (req.body.token || process.env.META_WHATSAPP_TOKEN || '').trim();
+  const phoneId = (process.env.META_PHONE_NUMBER_ID || '1398161436704734').trim();
+
+  if (!token) {
+    return res.json({ success: false, error: 'No Meta token provided or found in environment.' });
+  }
+
+  try {
+    const metaRes = await fetch(`https://graph.facebook.com/v21.0/${phoneId}?fields=verified_name,display_phone_number,quality_rating`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const metaData: any = await metaRes.json();
+
+    if (metaData.error) {
+      return res.json({
+        success: false,
+        valid: false,
+        error: metaData.error.message,
+        code: metaData.error.code,
+        subcode: metaData.error.error_subcode
+      });
+    }
+
+    res.json({
+      success: true,
+      valid: true,
+      phone: metaData.display_phone_number,
+      verifiedName: metaData.verified_name,
+      qualityRating: metaData.quality_rating
+    });
+  } catch (err: any) {
+    res.json({ success: false, valid: false, error: err.message });
+  }
+});
+
 app.post('/api/whatsapp/send-otp', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { phone, amount, orderNumber, pincode } = req.body;
   const targetPhone = phone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';

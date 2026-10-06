@@ -130,7 +130,12 @@ export async function sendWhatsAppMessage(
       });
       return { success: true, sid, recipient: cleanTo, status: 'SENT', provider: 'META_CLOUD_API' };
     } else {
-      const errMsg = data.error?.message || 'Meta API delivery rejected';
+      let errMsg = data.error?.message || 'Meta API delivery rejected';
+      if (data.error?.code === 190) {
+        errMsg = 'Meta OAuth Error 190: Access token has expired. Please paste your fresh Meta token in "Meta Token & Phone Config".';
+      } else if (data.error?.code === 131030) {
+        errMsg = `Meta Sandbox Error 131030: +${cleanTo} is not in your Meta Developer allowed test numbers list.`;
+      }
       console.warn('[Meta WhatsApp] API error:', errMsg);
       await logRef.set({
         id: logId,
@@ -141,7 +146,7 @@ export async function sendWhatsAppMessage(
         provider: 'META_CLOUD_API',
         timestamp: new Date().toISOString(),
       });
-      return { success: false, recipient: cleanTo, error: errMsg, provider: 'META_CLOUD_API' };
+      return { success: false, recipient: cleanTo, error: errMsg, errorCode: data.error?.code, provider: 'META_CLOUD_API' };
     }
   } catch (err: any) {
     console.warn('[Meta WhatsApp] Network error:', err.message);

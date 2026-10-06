@@ -19,10 +19,10 @@ const KEY_3 = (process.env.AUTONOMOUS_KEY_3 || process.env.AUTONOMOUS_AGENT_STRA
 const KEY_POOL = [KEY_1, KEY_2, KEY_3].filter(k => k && k.length > 10 && k !== 'Secret value');
 
 const CANDIDATE_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-1.5-flash',
   'gemini-3.8-flash',
-  'gemini-3.6-flash'
+  'gemini-2.0-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro'
 ];
 
 function extractPhoneNumber(text: string): string | null {
@@ -104,16 +104,24 @@ export async function executeWhatsAppAiCommand(
 
 _Generated autonomously by DataNexus Real AI Engine._`;
 
-  // 4. Decide whether user wants to dispatch/send WhatsApp message
-  const lowerCmd = userCommand.toLowerCase();
-  const shouldDispatch =
-    lowerCmd.includes('send') ||
+  // 4. Intent Classification
+  const trimmed = userCommand.trim();
+  const lowerCmd = trimmed.toLowerCase();
+
+  // Pure Greeting or Smalltalk
+  const isGreeting = /^(hello|hi|hey|namaste|salaam|good\s*(morning|afternoon|evening)|kaise\s*ho|kya\s*haal|who\s*are\s*you|kya\s*kar\s*sakte\s*ho)[!?,.\s]*$/i.test(lowerCmd) ||
+                     (lowerCmd.length <= 12 && (lowerCmd.includes('hello') || lowerCmd.includes('hi') || lowerCmd.includes('hey')));
+
+  // Explicit Dispatch Request
+  const shouldDispatch = !isGreeting && (
     lowerCmd.includes('bhej') ||
+    lowerCmd.includes('send') ||
     lowerCmd.includes('dispatch') ||
-    lowerCmd.includes('whatsapp') ||
-    lowerCmd.includes('message') ||
-    lowerCmd.includes('no par') ||
-    lowerCmd.includes('report');
+    lowerCmd.includes('whatsapp kar') ||
+    lowerCmd.includes('no par bhej') ||
+    lowerCmd.includes('number par') ||
+    lowerCmd.includes('forward')
+  );
 
   let dispatchResult: any = null;
   if (shouldDispatch && targetPhone) {
@@ -127,29 +135,42 @@ _Generated autonomously by DataNexus Real AI Engine._`;
     }
   }
 
-  // 5. Generate AI synthesis using the 3 Gemini Keys
-  const prompt = `You are DataNexus Autonomous WhatsApp Operations AI Chief of Staff.
-User gave command: "${userCommand}"
+  // 5. Intelligent Prompt for Gemini
+  let prompt = '';
+  if (isGreeting) {
+    prompt = `You are DataNexus WhatsApp Operations AI Chief of Staff.
+The user greeted you with: "${userCommand}".
 
-REAL AUDITED STORE DATA:
+INSTRUCTIONS:
+1. Greet the user warmly and respectfully in natural conversational Hindi/Hinglish.
+2. Introduce yourself briefly: You are their 24/7 WhatsApp AI Assistant connected to their live e-commerce store.
+3. Tell them they can ask you any specific question (e.g. "aaj kitni delivery hui?", "net profit kitna hai?", "RTO rate kya hai?") or tell you to dispatch the complete verified store report to any phone number on WhatsApp.
+4. Ask what they would like to do right now.
+5. Do NOT list the entire financial report unless they explicitly asked for it. Keep it friendly, crisp, and human.`;
+  } else {
+    prompt = `You are DataNexus Autonomous WhatsApp Operations AI Chief of Staff.
+User query/command: "${userCommand}"
+
+VERIFIED STORE DATA:
 - Total Orders: ${kpis.totalOrders}
 - Delivered Orders: ${kpis.deliveredOrders}
 - RTO Returned Orders: ${kpis.rtoOrders} (Rate: ${kpis.rtoRatePercent}%)
 - Invoiced GMV: ${formatLakhs(kpis.totalGmv)}
 - Net Realized Profit: ${formatLakhs(kpis.netProfit)} (Margin: ${kpis.profitMarginPercent}%)
 - Reverse Logistics Drag: ${formatLakhs(kpis.rtoLossAmount)} (calculated at ₹210 reverse shipping penalty per RTO order)
-- Target Phone: +${targetPhone}
-- Dispatched to WhatsApp: ${shouldDispatch ? 'YES (Triggered via Meta Cloud API)' : 'NO (User requested inquiry only)'}
-- Dispatch Status: ${dispatchResult?.status || (dispatchResult?.success ? 'SENT' : 'PROCESSED')}
+- Target Recipient Phone: +${targetPhone}
+- WhatsApp Dispatch Triggered: ${shouldDispatch ? 'YES' : 'NO'}
+- Dispatch Result: ${dispatchResult ? JSON.stringify(dispatchResult) : 'N/A'}
 
-TASK:
-Write a confident, clear response in natural conversational Hindi/Hinglish (like a dedicated senior engineering chief of staff).
-1. Confirm that you double-checked the store details and verified that the math is 100% accurate (GMV, Delivered, RTO, Net Profit).
-2. Confirm whether the WhatsApp report was dispatched to +${targetPhone} or state the exact findings requested.
-3. Keep it professional, crisp, and authoritative with zero AI robotic buzzwords.`;
+INSTRUCTIONS:
+1. Answer EXACTLY and DIRECTLY what the user asked in natural, confident Hindi/Hinglish.
+2. If they asked about a single metric (e.g., only profit, or only delivery, or only RTO), answer THAT specific question with the verified number.
+3. If they asked to send/dispatch to a number: Confirm that you verified the store figures and dispatched the report to +${targetPhone}. If the dispatch had an error or token expiration, state it honestly and suggest updating the Meta Token in the config.
+4. Keep the tone professional, helpful, and natural (zero robot buzzwords).`;
+  }
 
   let aiResponseText = '';
-  let modelChosen = 'gemini-2.5-flash';
+  let modelChosen = 'gemini-3.8-flash';
 
   for (const key of KEY_POOL) {
     try {
@@ -176,7 +197,19 @@ Write a confident, clear response in natural conversational Hindi/Hinglish (like
   }
 
   if (!aiResponseText) {
-    aiResponseText = `Maine store ka pura order book aur financial data check kar liya hai. Total ${kpis.totalOrders} orders verify hue hain, jisme se ${kpis.deliveredOrders} orders deliver ho chuke hain aur RTO rate ${kpis.rtoRatePercent}% par hai. Net Realized Profit ${formatLakhs(kpis.netProfit)} (28.4% margin) bilkul accurate hai.${shouldDispatch ? ` Maine verified daily report +${targetPhone} par WhatsApp dispatch kar di hai.` : ''}`;
+    if (isGreeting) {
+      aiResponseText = `Namaste! Main aapka DataNexus WhatsApp Operations AI Assistant hoon. Main aapke store ke live orders, delivery, profit/loss aur RTO metrics ko track karke kisi bhi WhatsApp number par bhej sakta hoon. Aap mujhse koi specific sawaal pooch sakte hain (jaise: 'aaj ka profit kitna hai?' ya 'delivery count kya hai?'), ya kisi bhi number par report bhejne ko keh sakte hain. Bataiye, main aapki kya madad karoon?`;
+    } else if (shouldDispatch) {
+      aiResponseText = `Maine store ka live order book aur P&L audit kar liya hai. Total ${kpis.totalOrders} orders me se ${kpis.deliveredOrders} successfully deliver hue hain aur Net Realized Profit ${formatLakhs(kpis.netProfit)} hai. Verified daily report +${targetPhone} par WhatsApp dispatch kar di gayi hai.`;
+    } else if (lowerCmd.includes('profit') || lowerCmd.includes('munafa') || lowerCmd.includes('margin')) {
+      aiResponseText = `Aapke connected store ka Net Realized Profit ${formatLakhs(kpis.netProfit)} hai, jo ki total GMV (${formatLakhs(kpis.totalGmv)}) par ${kpis.profitMarginPercent}% ka true realized profit margin hai.`;
+    } else if (lowerCmd.includes('deliver') || lowerCmd.includes('bheja')) {
+      aiResponseText = `Total ${kpis.totalOrders} orders me se ab tak ${kpis.deliveredOrders} orders successfully deliver ho chuke hain, aur ${kpis.rtoOrders} orders RTO return me gaye hain.`;
+    } else if (lowerCmd.includes('rto') || lowerCmd.includes('return')) {
+      aiResponseText = `Aapka current RTO Return Rate ${kpis.rtoRatePercent}% hai (${kpis.rtoOrders} orders). RTO reverse freight aur packaging loss lagbhag ${formatLakhs(kpis.rtoLossAmount)} record hua hai.`;
+    } else {
+      aiResponseText = `Store ka data verified hai: Total Orders: ${kpis.totalOrders}, Delivered: ${kpis.deliveredOrders}, Net Realized Profit: ${formatLakhs(kpis.netProfit)} (${kpis.profitMarginPercent}% margin). Agar is report ko WhatsApp par bhejna ho to mujhe recipient number batayein.`;
+    }
   }
 
   return {
