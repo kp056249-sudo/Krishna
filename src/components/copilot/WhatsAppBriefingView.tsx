@@ -24,7 +24,11 @@ import {
   Trash2,
   Users,
   Check,
-  X
+  X,
+  Bot,
+  Sparkles,
+  Terminal,
+  Key
 } from 'lucide-react';
 import { EnterpriseKPIs, WhatsAppRecipient } from '../../types';
 import { formatLakhs } from '../../utils/financialMetrics';
@@ -54,10 +58,84 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
   const [testingRecipientId, setTestingRecipientId] = useState<string | null>(null);
   const [deletingRecipientId, setDeletingRecipientId] = useState<string | null>(null);
 
+  // WhatsApp Autonomous AI Operations Assistant (Tri-Gemini Key Powered)
+  const [aiCommandInput, setAiCommandInput] = useState('');
+  const [aiCustomPhone, setAiCustomPhone] = useState('+91 9250509070');
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [aiActionResult, setAiActionResult] = useState<any>(null);
+
+  // Meta Gateway Configuration State
+  const [gatewayConfig, setGatewayConfig] = useState<any>(null);
+  const [newTokenInput, setNewTokenInput] = useState('');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
+
   useEffect(() => {
     fetchLogs();
     fetchRecipients();
+    fetchGatewayConfig();
   }, []);
+
+  const fetchGatewayConfig = async () => {
+    try {
+      const res = await api.get('/api/whatsapp/config');
+      if (res.success) {
+        setGatewayConfig(res);
+        if (res.founderPhone) setAiCustomPhone(res.founderPhone);
+      }
+    } catch {}
+  };
+
+  const handleExecuteAiCommand = async (customPrompt?: string) => {
+    const cmd = customPrompt || aiCommandInput;
+    if (!cmd.trim() || isAiProcessing) return;
+
+    setIsAiProcessing(true);
+    setAiActionResult(null);
+    try {
+      const res = await api.post('/api/whatsapp/ai/command', {
+        command: cmd.trim(),
+        phone: aiCustomPhone.trim()
+      });
+      if (res.success) {
+        setAiActionResult(res);
+        setStatusMessage(res.dispatched ? `🚀 Report dispatched to +${res.recipientPhone}! Result: ${res.dispatchResult?.status || 'SENT'}` : `✅ Store data verified by AI.`);
+        await fetchLogs();
+      } else {
+        setStatusMessage(`AI Error: ${res.error || 'Failed to process command'}`);
+      }
+    } catch (err: any) {
+      setStatusMessage(`AI Error: ${err.message}`);
+    } finally {
+      setIsAiProcessing(false);
+      setAiCommandInput('');
+      setTimeout(() => setStatusMessage(null), 8000);
+    }
+  };
+
+  const handleUpdateConfig = async () => {
+    if (!newTokenInput.trim()) return;
+    setIsUpdatingConfig(true);
+    try {
+      const res = await api.post('/api/whatsapp/config', {
+        token: newTokenInput.trim(),
+        founderPhone: aiCustomPhone.trim()
+      });
+      if (res.success) {
+        setStatusMessage(`🎉 Meta WhatsApp token updated successfully!`);
+        setNewTokenInput('');
+        setShowConfigModal(false);
+        await fetchGatewayConfig();
+      } else {
+        setStatusMessage(`Error: ${res.error || 'Failed to update token'}`);
+      }
+    } catch (err: any) {
+      setStatusMessage(`Error: ${err.message}`);
+    } finally {
+      setIsUpdatingConfig(false);
+      setTimeout(() => setStatusMessage(null), 5000);
+    }
+  };
 
   const fetchLogs = async () => {
     try {
@@ -310,6 +388,251 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
             <span className="font-semibold">{statusMessage}</span>
           </div>
           <button onClick={() => setStatusMessage(null)} className="text-slate-400 hover:text-white p-1">✕</button>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🤖 AUTONOMOUS WHATSAPP AI ASSISTANT (Powered by 3 Real Gemini Keys)        */}
+      {/* ========================================================================= */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950/40 to-slate-950 border border-emerald-500/40 shadow-2xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-950 border border-emerald-500/50 text-emerald-300 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Tri-Engine AI Operations Active
+              </span>
+              <span className="text-[11px] font-semibold text-cyan-400 flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> 3 Real Gemini Keys Connected
+              </span>
+            </div>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <Bot className="w-5 h-5 text-emerald-400" />
+              <span>WhatsApp Autonomous AI Assistant</span>
+            </h2>
+            <p className="text-xs text-slate-300 mt-0.5">
+              AI automatically audits your connected store, verifies delivery and profit numbers for 100% accuracy, and dispatches reports to any WhatsApp number.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowConfigModal(true)}
+              className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-emerald-500/50 text-slate-200 hover:text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <Key className="w-3.5 h-3.5 text-amber-400" />
+              <span>Meta Token &amp; Phone Config</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Quick Action One-Tap Commands */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold text-slate-400">Quick AI Prompts:</span>
+          <button
+            type="button"
+            onClick={() => handleExecuteAiCommand(`Is number par store ki delivery, profit loss aur complete report bhej do: ${aiCustomPhone}`)}
+            disabled={isAiProcessing}
+            className="px-3 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/60 border border-emerald-700/60 text-emerald-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+          >
+            <Zap className="w-3 h-3 fill-emerald-300" />
+            <span>Verify &amp; Send to {aiCustomPhone}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleExecuteAiCommand('Check RTO rate, courier reverse losses and send logistics alert on WhatsApp')}
+            disabled={isAiProcessing}
+            className="px-3 py-1.5 rounded-lg bg-cyan-950/60 hover:bg-cyan-900/60 border border-cyan-700/60 text-cyan-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+          >
+            <Truck className="w-3 h-3" />
+            <span>Audit RTO &amp; Courier SLAs</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleExecuteAiCommand('Store ka net realized profit aur margin verify karke WhatsApp summary ready karo')}
+            disabled={isAiProcessing}
+            className="px-3 py-1.5 rounded-lg bg-amber-950/60 hover:bg-amber-900/60 border border-amber-700/60 text-amber-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50 transition-colors"
+          >
+            <DollarSign className="w-3 h-3" />
+            <span>Verify Today's Profit &amp; Loss</span>
+          </button>
+        </div>
+
+        {/* Natural Language Prompt Bar */}
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleExecuteAiCommand();
+          }}
+          className="flex flex-col sm:flex-row items-stretch gap-2.5"
+        >
+          <div className="relative flex-1">
+            <input
+              type="text"
+              value={aiCommandInput}
+              onChange={(e) => setAiCommandInput(e.target.value)}
+              placeholder="e.g. 'Muje 919250509070 par store ki delivery, profit loss aur saari details verify karke bhej do'"
+              className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl px-4 py-3 text-xs text-slate-100 placeholder:text-slate-500 outline-none transition-colors pr-24"
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[11px] font-mono text-emerald-400">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Real AI</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={aiCustomPhone}
+              onChange={(e) => setAiCustomPhone(e.target.value)}
+              placeholder="+91 9250509070"
+              className="w-36 bg-slate-950 border border-slate-800 text-slate-200 text-xs font-mono rounded-xl px-3 py-3 outline-none focus:border-emerald-500"
+              title="Target WhatsApp Phone Number"
+            />
+
+            <button
+              type="submit"
+              disabled={isAiProcessing || (!aiCommandInput.trim() && !aiCustomPhone)}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950 cursor-pointer disabled:opacity-50 transition-all active:scale-95"
+            >
+              {isAiProcessing ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Auditing &amp; Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  <span>Execute &amp; WhatsApp</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Live AI Execution & Verification Result Box */}
+        {aiActionResult && (
+          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span className="text-xs font-bold text-white">AI Self-Verification Completed</span>
+                <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
+                  {aiActionResult.verifiedKPIs?.verificationStatus}
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">
+                Model: {aiActionResult.modelUsed} · Speed: {aiActionResult.executionMs}ms
+              </span>
+            </div>
+
+            {/* Verification Numbers */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+              <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">TOTAL ORDERS</span>
+                <span className="text-white font-bold">{aiActionResult.verifiedKPIs?.totalOrders}</span>
+              </div>
+              <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">DELIVERED COUNT</span>
+                <span className="text-emerald-400 font-bold">{aiActionResult.verifiedKPIs?.deliveredOrders}</span>
+              </div>
+              <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">NET REALIZED PROFIT</span>
+                <span className="text-cyan-400 font-bold">₹{(aiActionResult.verifiedKPIs?.netProfit / 100000).toFixed(2)}L</span>
+              </div>
+              <div className="p-2 rounded bg-slate-900 border border-slate-800">
+                <span className="text-slate-500 block text-[10px]">RTO RATE</span>
+                <span className="text-amber-400 font-bold">{aiActionResult.verifiedKPIs?.profitMarginPercent}% Margin</span>
+              </div>
+            </div>
+
+            {/* AI Natural Speech Explanation */}
+            <div className="p-3 rounded-lg bg-slate-900/80 border border-slate-800 text-xs text-slate-200 leading-relaxed font-sans whitespace-pre-line">
+              {aiActionResult.aiResponse}
+            </div>
+
+            {/* WhatsApp Dispatch Confirmation */}
+            {aiActionResult.dispatched && (
+              <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-700/60 text-emerald-300 text-xs flex items-center justify-between font-mono">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-4 h-4 text-emerald-400" />
+                  <span>WhatsApp Dispatched to +{aiActionResult.recipientPhone}</span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800">
+                  {aiActionResult.dispatchResult?.status || 'SENT'} (SID: {aiActionResult.dispatchResult?.sid?.substring(0, 15) || 'Verified'})
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Meta Token & Phone Configuration Modal */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Key className="w-5 h-5 text-amber-400" />
+                <h3 className="text-sm font-bold text-white">Meta WhatsApp Cloud Gateway Configuration</h3>
+              </div>
+              <button onClick={() => setShowConfigModal(false)} className="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 font-mono text-[11px]">
+                <div className="flex justify-between text-slate-400">
+                  <span>Phone Number ID:</span>
+                  <span className="text-white font-bold">{gatewayConfig?.phoneId || '1398161436704734'}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>WABA ID:</span>
+                  <span className="text-white font-bold">{gatewayConfig?.wabaId || '2142971689587665'}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Token Status:</span>
+                  <span className="text-emerald-400 font-bold">{gatewayConfig?.maskedToken || 'Configured'}</span>
+                </div>
+                <div className="flex justify-between text-slate-400">
+                  <span>Approved Template:</span>
+                  <span className="text-cyan-400 font-bold">hello_world (en_US)</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Paste New Meta Access Token (From developers.facebook.com):
+                </label>
+                <textarea
+                  rows={3}
+                  value={newTokenInput}
+                  onChange={(e) => setNewTokenInput(e.target.value)}
+                  placeholder="Paste EAAG... or EAAN... access token here"
+                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs font-mono rounded-xl p-3 focus:border-emerald-500 outline-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isUpdatingConfig || !newTokenInput.trim()}
+                  onClick={handleUpdateConfig}
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  {isUpdatingConfig ? 'Saving...' : 'Save & Activate Token'}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

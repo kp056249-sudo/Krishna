@@ -22,6 +22,7 @@ import {
   recordAuditLog
 } from './server/firestoreService.js';
 import * as whatsappService from './server/services/whatsappService.js';
+import * as whatsappAiAssistant from './server/services/whatsappAiAssistant.js';
 import { initBriefingScheduler, executeDailyBriefing } from './server/services/briefingScheduler.js';
 import { trainRtoModel, fitLinearRegression } from './server/mlService.js';
 import { executeReadOnlyQuery } from './server/sqlEngine.js';
@@ -948,6 +949,64 @@ app.post('/api/whatsapp/test', requireAuth, async (req: AuthenticatedRequest, re
   );
   if (!result.success) return res.status(400).json(result);
   res.json(result);
+});
+
+// Autonomous WhatsApp Operations AI Command Endpoint (Powered by 3 Gemini Keys)
+app.post('/api/whatsapp/ai/command', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { command, phone } = req.body;
+    if (!command || typeof command !== 'string') {
+      return res.status(400).json({ success: false, error: 'Command prompt is required.' });
+    }
+    const result = await whatsappAiAssistant.executeWhatsAppAiCommand(req.user!.companyId, command, phone);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Meta WhatsApp Gateway Dynamic Configuration
+app.get('/api/whatsapp/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const token = (process.env.META_WHATSAPP_TOKEN || process.env.WHATSAPP_TOKEN || '').trim();
+  const phoneId = (process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID || '').trim();
+  const wabaId = (process.env.META_WABA_ID || process.env.WHATSAPP_WABA_ID || '').trim();
+  const founderPhone = (process.env.FOUNDER_WHATSAPP_PHONE || '+919250509070').trim();
+
+  res.json({
+    success: true,
+    phoneId,
+    wabaId,
+    founderPhone,
+    hasToken: Boolean(token && token.length > 20),
+    maskedToken: token.length > 20 ? `${token.substring(0, 10)}••••••••${token.substring(token.length - 6)}` : 'Not Configured',
+    status: token.length > 20 ? 'CONFIGURED' : 'NEEDS_TOKEN'
+  });
+});
+
+app.post('/api/whatsapp/config', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const { token, phoneId, wabaId, founderPhone } = req.body;
+  if (token && typeof token === 'string' && token.trim().length > 15) {
+    process.env.META_WHATSAPP_TOKEN = token.trim();
+    process.env.WHATSAPP_TOKEN = token.trim();
+  }
+  if (phoneId && typeof phoneId === 'string' && phoneId.trim().length > 5) {
+    process.env.META_PHONE_NUMBER_ID = phoneId.trim();
+    process.env.WHATSAPP_PHONE_NUMBER_ID = phoneId.trim();
+  }
+  if (wabaId && typeof wabaId === 'string' && wabaId.trim().length > 5) {
+    process.env.META_WABA_ID = wabaId.trim();
+    process.env.WHATSAPP_WABA_ID = wabaId.trim();
+  }
+  if (founderPhone && typeof founderPhone === 'string' && founderPhone.trim().length >= 10) {
+    process.env.FOUNDER_WHATSAPP_PHONE = founderPhone.trim();
+  }
+
+  res.json({
+    success: true,
+    message: 'Meta WhatsApp configuration updated successfully.',
+    phoneId: process.env.META_PHONE_NUMBER_ID,
+    founderPhone: process.env.FOUNDER_WHATSAPP_PHONE
+  });
 });
 
 app.post('/api/whatsapp/send-otp', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
