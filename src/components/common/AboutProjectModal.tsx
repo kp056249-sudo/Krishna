@@ -7,12 +7,25 @@ interface AboutProjectModalProps {
 }
 
 export const AboutProjectModal: React.FC<AboutProjectModalProps> = ({ isOpen, onClose }) => {
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+    >
       <div 
-        className="w-full max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-200 text-xs font-sans"
+        className="w-full max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-200 text-xs font-sans cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
@@ -70,7 +83,7 @@ export const AboutProjectModal: React.FC<AboutProjectModalProps> = ({ isOpen, on
                 </span>
                 <ul className="space-y-1.5 text-slate-300 text-[11px]">
                   <li>• <strong>10,000-Order Benchmark Dataset:</strong> Modeled after Olist / Kaggle schemas with real Indian pin-code distributions, Tier 1/2/3 COD behavior, and correlated return risks.</li>
-                  <li>• <strong>Unit Economics Engine:</strong> Closed-form computation of realized profit: \( \text{GMV} - \text{COGS} - \text{ForwardShipping} - \text{GatewayFee} - \text{Packaging} - \text{GST} - \text{RTOPenalty} \).</li>
+                  <li>• <strong>Unit Economics Engine:</strong> Closed-form computation of realized profit: Realized Revenue - COGS - Forward Shipping - Gateway Fee - Packaging - RTO Reverse Logistics Loss.</li>
                   <li>• <strong>SQL Studio AST Guard:</strong> Read-only query sandbox supporting CTEs (`WITH`), window functions (`ROW_NUMBER`, `RANK`), blocking any DDL/DML mutations.</li>
                   <li>• <strong>ML Pipeline:</strong> 80/20 chronological split, Leave-One-Out target encoding, confusion matrix, precision/recall/F1/AUC.</li>
                   <li>• <strong>OLS Regression Lab:</strong> Parameter estimation with residual plots checking for homoscedasticity.</li>

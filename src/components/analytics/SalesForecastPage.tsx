@@ -282,10 +282,10 @@ export const SalesForecastPage: React.FC = () => {
             E-commerce transactions exhibit strong weekly seasonality where Saturday and Sunday GMV routinely outpaces mid-week volume by 25–30%. Modeling demand with simple moving averages fails because it lags these cyclical weekend spikes. Our pipeline uses a multiplicative Holt-Winters seasonal decomposition:
           </p>
           <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 font-mono text-[10px] text-cyan-300">
-            \( \hat{Y}_{t+m} = (\ell_t + m \cdot b_t) \times S_{t+m-s} \)
+            {"Y_forecast[t+m] = (Level[t] + m * Trend[t]) * SeasonalityFactor[t+m-s]"}
           </div>
           <p className="text-slate-500 text-[10px]">
-            Where \( \ell_t \) is the smoothed level, \( b_t \) is the trend drift, and \( S \) is the periodic day-of-week index.
+            Where Level is the smoothed series, Trend is the drift slope, and SeasonalityFactor is the day-of-week multiplier.
           </p>
         </div>
       </div>

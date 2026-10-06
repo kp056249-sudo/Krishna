@@ -30,6 +30,7 @@ import * as autonomousEngine from './server/services/autonomousEngine.js';
 import * as shiprocketService from './server/services/shiprocketService.js';
 import * as geminiCallsService from './server/services/geminiCallsService.js';
 import * as rtoMLService from './server/services/rtoMLService.js';
+import * as triEngine from './server/services/autonomousTriEngine.js';
 import {
   initTelegramBot,
   getTelegramBotStatus,
@@ -1543,6 +1544,31 @@ app.get('/api/autonomous/directives/history', requireAuth, async (req: Authentic
 app.post('/api/autonomous/settings', requireAuth, (req: Request, res: Response) => {
   const settings = autonomousEngine.updateAutonomousSettings(req.body);
   res.json({ success: true, settings });
+});
+
+// Tri-Engine Real AI Autonomous Core (Connected with 3 Dedicated Gemini Keys)
+app.get('/api/autonomous/tri-engine/status', (req: Request, res: Response) => {
+  res.json({ success: true, ...triEngine.getTriEngineHealth() });
+});
+
+app.post('/api/autonomous/tri-engine/execute', async (req: Request, res: Response) => {
+  try {
+    const { agentId, prompt, context } = req.body;
+    const result = await triEngine.executeTriAgent(agentId, prompt, context);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/autonomous/tri-engine/sweep', async (req: Request, res: Response) => {
+  try {
+    const { context } = req.body;
+    const result = await triEngine.executeTriSweep(context);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.post('/api/autonomous/directives/audit-rto', requireAuth, async (req: AuthenticatedRequest, res: Response) => {

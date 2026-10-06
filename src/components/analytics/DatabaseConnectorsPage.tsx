@@ -13,7 +13,7 @@ export const DatabaseConnectorsPage: React.FC = () => {
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ success: boolean; message: string } | null>(null);
-  const [tables, setTables] = useState<string[]>([]);
+  const [tables, setTables] = useState<any[]>([]);
   const [query, setQuery] = useState('SELECT id, order_number, total_amount, payment_mode, status FROM orders ORDER BY created_at DESC LIMIT 10;');
   const [queryResult, setQueryResult] = useState<any[] | null>(null);
   const [queryError, setQueryError] = useState<string | null>(null);
@@ -267,13 +267,28 @@ export const DatabaseConnectorsPage: React.FC = () => {
 
             {tables.length > 0 && (
               <div className="bg-slate-950 border border-slate-800/80 p-3 rounded-lg">
-                <span className="text-slate-400 text-xs font-bold block mb-1">Discovered Tables:</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {tables.map((t) => (
-                    <span key={t} className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-cyan-300">
-                      {t}
-                    </span>
-                  ))}
+                <span className="text-slate-400 text-xs font-bold block mb-1.5">Discovered Tables (Click to Query):</span>
+                <div className="flex flex-wrap gap-2">
+                  {tables.map((t: any, idx: number) => {
+                    const tableName = typeof t === 'string' ? t : t?.name || `table_${idx}`;
+                    const rowCount = typeof t === 'object' && t?.rowCount !== undefined ? `${t.rowCount} rows` : '';
+                    return (
+                      <button
+                        type="button"
+                        key={tableName || idx}
+                        onClick={() => setQuery(`SELECT * FROM ${tableName} LIMIT 10;`)}
+                        className="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500/50 text-[11px] font-mono text-cyan-300 flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                        title={`Click to generate query for ${tableName}`}
+                      >
+                        <span className="font-semibold">{tableName}</span>
+                        {rowCount && (
+                          <span className="text-[10px] px-1 py-0.2 rounded bg-slate-950 text-slate-400 border border-slate-800">
+                            {rowCount}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -322,7 +337,11 @@ export const DatabaseConnectorsPage: React.FC = () => {
                         <tr key={idx} className="hover:bg-slate-900/40">
                           {Object.values(row).map((val: any, vIdx) => (
                             <td key={vIdx} className="px-3 py-1.5 truncate max-w-[200px]">
-                              {val === null || val === undefined ? 'NULL' : String(val)}
+                              {val === null || val === undefined 
+                                ? 'NULL' 
+                                : typeof val === 'object' 
+                                  ? JSON.stringify(val) 
+                                  : String(val)}
                             </td>
                           ))}
                         </tr>

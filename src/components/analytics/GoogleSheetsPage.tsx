@@ -44,18 +44,26 @@ export const GoogleSheetsPage: React.FC = () => {
   };
 
   const handleConnect = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await api.get('/api/integrations/google-sheets/connect');
-      if (res.success && res.authUrl) {
-        // Open authorization screen in popup
-        const width = 500;
-        const height = 600;
-        const left = window.screen.width / 2 - width / 2;
-        const top = window.screen.height / 2 - height / 2;
-        window.open(res.authUrl, 'Google OAuth', `width=${width},height=${height},left=${left},top=${top}`);
+      if (res.success) {
+        if (res.authUrl) {
+          const width = 500;
+          const height = 600;
+          const left = window.screen.width / 2 - width / 2;
+          const top = window.screen.height / 2 - height / 2;
+          window.open(res.authUrl, 'Google OAuth', `width=${width},height=${height},left=${left},top=${top}`);
+        }
+        await checkConnectionStatus();
+      } else {
+        setError(res.error || 'Authorization trigger failed.');
       }
     } catch (err: any) {
       setError(err.message || 'Authorization trigger failed.');
+    } finally {
+      setLoading(false);
     }
   };
 
