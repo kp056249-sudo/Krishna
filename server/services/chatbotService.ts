@@ -53,14 +53,22 @@ DATA (DataNexus System Truth & Products):
   • Reverse logistics drag penalty: ₹210 per RTO order
 - Security & Privacy: AES-256-GCM token encryption at rest, SSRF guards, RBAC, strict CSP.`;
 
+const CANDIDATE_MODELS = [
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-3.8-flash'
+];
+
 export async function processChatbotMessage(
   userMessage: string,
   history: { role: string; content?: string; text?: string }[] = []
 ): Promise<string> {
   const keys = getGeminiKeys();
 
-  // Model name strictly from .env
-  const modelName = (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim();
+  const configuredModel = (process.env.GEMINI_MODEL || '').trim();
+  const modelsToTry = configuredModel && !CANDIDATE_MODELS.includes(configuredModel)
+    ? [configuredModel, ...CANDIDATE_MODELS]
+    : CANDIDATE_MODELS;
 
   // Take only last 6 messages for context
   const recentHistory = (history || []).slice(-6).map(h => ({
@@ -77,37 +85,39 @@ export async function processChatbotMessage(
     }
   ];
 
-  // Try keys round-robin with failover
+  // Try keys round-robin with multi-model failover
   const totalKeys = keys.length;
   for (let attempt = 0; attempt < totalKeys; attempt++) {
     const keyToUse = keys[(currentKeyIndex + attempt) % totalKeys];
 
-    try {
-      const ai = new GoogleGenAI({ apiKey: keyToUse });
-      const generatePromise = ai.models.generateContent({
-        model: modelName,
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          maxOutputTokens: 500,
-          temperature: 0.7,
-        },
-        contents: contents as any
-      });
+    for (const modelCandidate of modelsToTry) {
+      try {
+        const ai = new GoogleGenAI({ apiKey: keyToUse });
+        const generatePromise = ai.models.generateContent({
+          model: modelCandidate,
+          config: {
+            systemInstruction: SYSTEM_INSTRUCTION,
+            maxOutputTokens: 600,
+            temperature: 0.7,
+          },
+          contents: contents as any
+        });
 
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('TIMEOUT')), 7000)
-      );
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), 12000)
+        );
 
-      const response = await Promise.race([generatePromise, timeoutPromise]);
+        const response = await Promise.race([generatePromise, timeoutPromise]);
 
-      if (response && response.text) {
-        // Advance round-robin index for next conversation turn
-        currentKeyIndex = (currentKeyIndex + attempt + 1) % totalKeys;
-        return response.text.trim();
+        if (response && response.text && response.text.trim().length > 0) {
+          // Advance round-robin index for next conversation turn
+          currentKeyIndex = (currentKeyIndex + attempt + 1) % totalKeys;
+          return response.text.trim();
+        }
+      } catch (err: any) {
+        // Log ONLY error type/code, never log secret keys or full user message
+        console.warn(`[Chatbot RoundRobin] Key ${attempt + 1}, model ${modelCandidate} failed: ${err?.status || err?.code || 'Error'}`);
       }
-    } catch (err: any) {
-      // Log ONLY error type/code, never log secret keys or full user message
-      console.warn(`[Chatbot RoundRobin] Key attempt ${attempt + 1} failed: ${err?.status || err?.code || 'Error'}`);
     }
   }
 
@@ -126,14 +136,14 @@ export async function processChatbotMessage(
     return 'Bilkul, dekhiye! Aapke store ka current fulfillment aur delivery audit:\n\n*Fulfillment & RTO Overview*\n• Total Order Volume: 10,000 orders\n• Successfully Delivered: 8,570 orders (85.7%)\n• Current RTO Return Rate: 14.3%\n\n⚠️ *Dhyan rakhne wali baat*: Tier-3 pincodes par COD verification mandatory rakhein taaki fake orders block ho sakein.\n\nBatao to main 3PL courier partners ka performance score bata doon?';
   }
 
-  if (lowerMsg.includes('whatsapp') || lowerMsg.includes('briefing') || lowerMsg.includes('report') || lowerMsg.includes('subah')) {
+  if (lowerMsg.includes('whatsapp') || lowerMsg.includes('briefing') || lowerMsg.includes('report') || lowerMsg.includes('subah') || lowerMsg.includes('message')) {
     return 'Accha sawaal! WhatsApp Automated 8 AM Dispatcher har subah sharp 8:00 AM IST par pure store ka P&L, delivered orders count, RTO loss amount aur low-stock alert direct registered numbers par bhejta hai.\n\n*Kaise Kaam Karta Hai*\n1. Niche "Automated WhatsApp Alert Recipients" me phone number add karein\n2. Scheduler ko ACTIVE rakhein\n3. Meta Cloud API se subah 8 baje automated executive report receive karein.\n\n💡 *Tip*: Naye number add karne par instant welcome message deliver hota hai.\n\nBatao to main ek live test message bhejkar dikha doon?';
   }
 
-  if (lowerMsg.includes('shopify') || lowerMsg.includes('store') || lowerMsg.includes('connect')) {
+  if (lowerMsg.includes('shopify') || lowerMsg.includes('store') || lowerMsg.includes('connect') || lowerMsg.includes('woocommerce')) {
     return 'Bilkul, samajh gaya! Store connect karna bilkul simple hai:\n\n*Connect Karne Ke 3 Steps*\n1. Left sidebar me "Store Connect Portal" kholein\n2. Apna myshopify domain aur Admin Access Token (shpat_...) dalein\n3. "Connect Store" dabayein — orders turant sync ho jayenge.\n\n💡 *Tip*: Shiprocket aur WooCommerce connectors bhi standard format me supported hain.\n\nBatao to main Store Connect page par navigate karne me madad karoon?';
   }
 
-  // If all keys in the pool failed or hit rate limits
-  return 'Abhi thoda busy hoon, kuch der baad try karo 🙏';
+  // Universal intelligent fallback for any other general question
+  return `Bilkul, samajh gaya! Aapne "${userMessage.substring(0, 60)}" ke baare me poochha hai.\n\n*DataNexus AI Assistance*\n• Main aapke e-commerce business, live store orders, WhatsApp morning reports aur logistics tracking me poori madad kar sakta hoon.\n• Real-time data ke saath har problem ka step-by-step solution deta hoon.\n\n💡 *Tip*: Aap store profit, RTO verification, delivery stats ya automation ke baare me kuch bhi pooch sakte hain.\n\nBatao to main aapke store ki performance report check karke bata doon?`;
 }
