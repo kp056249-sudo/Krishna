@@ -30,8 +30,8 @@ export async function sendWhatsAppMessage(
   messageText: string,
   metadata?: any
 ): Promise<WhatsAppSendResult> {
-  const metaToken = process.env.META_WHATSAPP_TOKEN;
-  const metaPhoneId = process.env.META_PHONE_NUMBER_ID;
+  const metaToken = (process.env.META_WHATSAPP_TOKEN || process.env.WHATSAPP_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN || '').trim();
+  const metaPhoneId = (process.env.META_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID || '').trim();
   const apiVersion = process.env.WHATSAPP_API_VERSION || 'v21.0';
 
   // Clean recipient phone (format: 9198XXXXXXXX)
