@@ -58,9 +58,6 @@ export async function processChatbotMessage(
   history: { role: string; content?: string; text?: string }[] = []
 ): Promise<string> {
   const keys = getGeminiKeys();
-  if (keys.length === 0) {
-    return 'Abhi thoda busy hoon, kuch der baad try karo 🙏';
-  }
 
   // Model name strictly from .env
   const modelName = (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim();
