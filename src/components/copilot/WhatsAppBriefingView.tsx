@@ -27,8 +27,7 @@ import {
   X,
   Bot,
   Sparkles,
-  Terminal,
-  Key
+  Terminal
 } from 'lucide-react';
 import { EnterpriseKPIs, WhatsAppRecipient } from '../../types';
 import { formatLakhs } from '../../utils/financialMetrics';
@@ -59,73 +58,10 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
   const [testingRecipientId, setTestingRecipientId] = useState<string | null>(null);
   const [deletingRecipientId, setDeletingRecipientId] = useState<string | null>(null);
 
-  // Meta Gateway Configuration State
-  const [gatewayConfig, setGatewayConfig] = useState<any>(null);
-  const [newTokenInput, setNewTokenInput] = useState('');
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
-  const [isTestingToken, setIsTestingToken] = useState(false);
-  const [tokenTestStatus, setTokenTestStatus] = useState<any>(null);
-
   useEffect(() => {
     fetchLogs();
     fetchRecipients();
-    fetchGatewayConfig();
   }, []);
-
-  const fetchGatewayConfig = async () => {
-    try {
-      const res = await api.get('/api/whatsapp/config');
-      if (res.success) {
-        setGatewayConfig(res);
-      }
-    } catch {}
-  };
-
-  const handleUpdateConfig = async () => {
-    if (!newTokenInput.trim()) return;
-    setIsUpdatingConfig(true);
-    try {
-      const res = await api.post('/api/whatsapp/config', {
-        token: newTokenInput.trim(),
-        founderPhone: gatewayConfig?.founderPhone || '+91 9250509070'
-      });
-      if (res.success) {
-        setStatusMessage(`🎉 Meta WhatsApp token updated successfully!`);
-        setNewTokenInput('');
-        setShowConfigModal(false);
-        await fetchGatewayConfig();
-      } else {
-        setStatusMessage(`Error: ${res.error || 'Failed to update token'}`);
-      }
-    } catch (err: any) {
-      setStatusMessage(`Error: ${err.message}`);
-    } finally {
-      setIsUpdatingConfig(false);
-      setTimeout(() => setStatusMessage(null), 5000);
-    }
-  };
-
-  const handleTestToken = async () => {
-    setIsTestingToken(true);
-    setTokenTestStatus(null);
-    try {
-      const res = await api.post('/api/whatsapp/config/test', {
-        token: newTokenInput.trim() || undefined
-      });
-      setTokenTestStatus(res);
-      if (res.valid) {
-        setStatusMessage(`✅ Meta Token is LIVE! Connected to ${res.phone || 'WhatsApp Phone'}`);
-      } else {
-        setStatusMessage(`❌ Meta Token Error: ${res.error}`);
-      }
-    } catch (e: any) {
-      setTokenTestStatus({ valid: false, error: e.message });
-      setStatusMessage(`Error testing token: ${e.message}`);
-    } finally {
-      setIsTestingToken(false);
-    }
-  };
 
   const fetchLogs = async () => {
     try {
@@ -360,118 +296,8 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
             <Clock className="w-4 h-4" />
             <span>{schedulerActive ? 'Scheduler: 08:00 AM ACTIVE' : 'Scheduler: PAUSED'}</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setShowConfigModal(!showConfigModal)}
-            className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-              showConfigModal
-                ? 'bg-amber-950/80 border-amber-600 text-amber-300 shadow-md'
-                : 'bg-slate-900 border-slate-700 text-slate-300 hover:text-white'
-            }`}
-          >
-            <Key className="w-4 h-4 text-amber-400" />
-            <span>{showConfigModal ? 'Close Gateway Config' : 'Meta Gateway Config'}</span>
-          </button>
         </div>
       </div>
-
-      {/* INLINE EXPANDABLE META GATEWAY CONFIGURATION PANEL */}
-      {showConfigModal && (
-        <div className="p-5 rounded-2xl bg-slate-950/95 border border-amber-500/50 shadow-2xl space-y-4 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2">
-              <Key className="w-4 h-4 text-amber-400" />
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Meta WhatsApp Cloud Gateway Configuration</h3>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowConfigModal(false)}
-              className="text-slate-400 hover:text-white text-xs px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer"
-            >
-              ✕ Close
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-xs font-mono">
-            <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span className="text-slate-500 block text-[10px]">PHONE NUMBER ID</span>
-              <span className="text-white font-bold">{gatewayConfig?.phoneId || '1398161436704734'}</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span className="text-slate-500 block text-[10px]">WABA ID</span>
-              <span className="text-white font-bold">{gatewayConfig?.wabaId || '2142971689587665'}</span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span className="text-slate-500 block text-[10px]">TOKEN STATUS</span>
-              <span className={gatewayConfig?.hasToken ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-                {gatewayConfig?.maskedToken || 'Configured in .env'}
-              </span>
-            </div>
-            <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-              <span className="text-slate-500 block text-[10px]">APPROVED TEMPLATE</span>
-              <span className="text-cyan-400 font-bold">hello_world (en_US)</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-              <span>Paste New Meta Access Token (From developers.facebook.com &gt; WhatsApp &gt; API Setup):</span>
-              <span className="text-[10px] text-amber-400 font-mono">Also automatically read from META_WHATSAPP_TOKEN in .env</span>
-            </label>
-            <textarea
-              rows={2}
-              value={newTokenInput}
-              onChange={(e) => setNewTokenInput(e.target.value)}
-              placeholder="Paste fresh EAAG... or EAAN... access token here"
-              className="w-full bg-slate-900 border border-slate-700 text-slate-100 text-xs font-mono rounded-xl p-3 focus:border-emerald-500 outline-none"
-            />
-          </div>
-
-          {tokenTestStatus && (
-            <div className={`p-3 rounded-lg text-xs font-mono border ${
-              tokenTestStatus.valid
-                ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300'
-                : 'bg-red-950/60 border-red-800 text-red-300'
-            }`}>
-              {tokenTestStatus.valid ? (
-                <p>✅ Meta Token is LIVE! Verified Phone: {tokenTestStatus.phone || 'Connected'} (Rating: {tokenTestStatus.qualityRating || 'GREEN'})</p>
-              ) : (
-                <p>❌ Meta Validation Failed: {tokenTestStatus.error} {tokenTestStatus.code ? `(Error Code: ${tokenTestStatus.code})` : ''}</p>
-              )}
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-            <button
-              type="button"
-              disabled={isTestingToken}
-              onClick={handleTestToken}
-              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-300 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
-            >
-              {isTestingToken ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
-              <span>Test Token With Meta API</span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowConfigModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isUpdatingConfig || !newTokenInput.trim()}
-                onClick={handleUpdateConfig}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold transition-all shadow-md shadow-emerald-950 cursor-pointer disabled:opacity-50"
-              >
-                {isUpdatingConfig ? 'Saving & Activating...' : 'Save & Activate Token'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {statusMessage && (
         <div className={`p-4 rounded-xl text-xs flex items-center justify-between shadow-lg border animate-in fade-in ${
