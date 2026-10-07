@@ -32,6 +32,7 @@ import * as shiprocketService from './server/services/shiprocketService.js';
 import * as geminiCallsService from './server/services/geminiCallsService.js';
 import * as rtoMLService from './server/services/rtoMLService.js';
 import * as triEngine from './server/services/autonomousTriEngine.js';
+import { processChatbotMessage } from './server/services/chatbotService.js';
 import {
   initTelegramBot,
   getTelegramBotStatus,
@@ -77,6 +78,40 @@ const apiLimiter = rateLimit({
   validate: { xForwardedForHeader: false }
 });
 app.use('/api/', apiLimiter);
+
+// Chatbot Rate Limiter: Max 15 requests per minute per IP
+const chatLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  message: { reply: 'Abhi bohot saare messages aa gaye! 1 minute baad try karo 🙏' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false }
+});
+
+// Chatbot API Endpoint: POST /api/chat
+app.post('/api/chat', chatLimiter, async (req: Request, res: Response) => {
+  const { message, history } = req.body || {};
+
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  if (message.length > 1000) {
+    return res.status(400).json({ error: 'Message cannot exceed 1000 characters' });
+  }
+
+  try {
+    const reply = await processChatbotMessage(
+      message.trim(),
+      Array.isArray(history) ? history : []
+    );
+    res.json({ reply });
+  } catch (err: any) {
+    console.warn(`[Chat Route] Exception: ${err?.name || 'Error'}`);
+    res.json({ reply: 'Abhi thoda busy hoon, kuch der baad try karo 🙏' });
+  }
+});
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
