@@ -127,8 +127,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* Center: Spacious Horizontal Single-Line Global Search Bar */}
-        <div className="flex-1 max-w-2xl lg:max-w-3xl mx-2 sm:mx-6 min-w-0">
+        {/* Center: Spacious Horizontal Single-Line Global Search Bar (Visible on sm+ screens) */}
+        <div className="hidden sm:flex flex-1 max-w-2xl lg:max-w-3xl mx-3 sm:mx-6 min-w-0">
           <button
             onClick={onOpenSearch}
             className="w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/90 hover:border-slate-300 hover:bg-slate-100/60 text-slate-400 hover:text-slate-600 transition-all text-xs group cursor-pointer shadow-xs"
@@ -145,17 +145,28 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
 
-        {/* Right: Clean Icons (Calendar, Bell with Badge, User Profile) */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* Right: Clean Icons (Mobile Search, Calendar, Bell with Badge, User Profile) */}
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Mobile Dedicated Search Button (Prevents search bar getting squished or hidden behind adjacent icons) */}
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="sm:hidden flex items-center justify-center p-2 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer active:scale-95 shadow-xs touch-manipulation"
+            title="Search for metrics, orders, SKUs (⌘K)"
+            aria-label="Search"
+          >
+            <Search className="w-4 h-4 text-slate-600" />
+          </button>
+
           {/* Calendar Indicator (Matches Screenshot) */}
           <button
             type="button"
             onClick={() => onSelectTab('whatsapp_briefing')}
-            className="flex items-center justify-center p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors relative cursor-pointer active:scale-95 shadow-xs"
+            className="flex items-center justify-center p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors relative cursor-pointer active:scale-95 shadow-xs touch-manipulation"
             title="Scheduled Operations & Calendar"
           >
             <Calendar className="w-4 h-4 text-slate-600" />
-            <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+            <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-1.5 h-1.5 rounded-full bg-blue-600"></span>
           </button>
 
           {/* Notification Alerts Bell (Matches Screenshot Bell with badge 3) */}
@@ -168,7 +179,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setShowUserMenu(false);
                 if (!showNotifications) fetchAlerts();
               }}
-              className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors relative cursor-pointer active:scale-95 shadow-xs touch-manipulation"
+              className="p-2 sm:p-2.5 rounded-xl bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-600 transition-colors relative cursor-pointer active:scale-95 shadow-xs touch-manipulation"
               title="System Alerts & Order Warnings"
             >
               <Bell className="w-4 h-4 text-slate-600" />
