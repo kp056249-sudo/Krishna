@@ -22,17 +22,19 @@ export const WhatsAppChatbot: React.FC = () => {
   const [input, setInput] = useState('');
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [displayedStreamingText, setDisplayedStreamingText] = useState<{ [id: string]: string }>({});
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto scroll to bottom
+  // Auto scroll ONLY inside the chat bubble container (NEVER hijacks the page scroll)
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isBotThinking, displayedStreamingText]);
+  }, [messages.length, isBotThinking]);
 
   // Safe HTML / Markdown Parser (XSS Protected, strictly renders React nodes)
   const renderFormattedText = (rawText: string) => {
@@ -239,7 +241,7 @@ export const WhatsAppChatbot: React.FC = () => {
       </div>
 
       {/* Chat Messages Body */}
-      <div className="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[460px] min-h-[320px] bg-slate-950/50">
+      <div ref={chatContainerRef} className="p-4 sm:p-5 space-y-4 overflow-y-auto max-h-[460px] min-h-[320px] bg-slate-950/50">
         {messages.map((m) => {
           const isUser = m.role === 'user';
           // Use typewriter text if streaming, otherwise full text
@@ -307,8 +309,6 @@ export const WhatsAppChatbot: React.FC = () => {
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Bar */}

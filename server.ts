@@ -1108,11 +1108,14 @@ app.get('/api/whatsapp/recipients', requireAuth, async (req: AuthenticatedReques
     const snap = await adminDb.collection('companies').doc(compId).collection('whatsapp_recipients').orderBy('addedAt', 'desc').get();
     let recipients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    // Auto-seed default founder contact if collection is empty
     if (recipients.length === 0) {
-      const founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';
+      let founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '919845430129';
       let clean = founderPhone.replace(/\D/g, '');
       if (clean.length === 10) clean = `91${clean}`;
+      if (clean === '919250509070') {
+        founderPhone = '+91 98454 30129';
+        clean = '919845430129';
+      }
       const defaultDoc = {
         phone: founderPhone,
         cleanPhone: clean,
@@ -1235,21 +1238,40 @@ app.post('/api/whatsapp/recipients/:id/test', requireAuth, async (req: Authentic
     }
 
     const data = doc.data();
-    const targetPhone = data?.cleanPhone || data?.phone;
-    const result = await whatsappService.sendWhatsAppMessage(
+    let targetPhone = data?.cleanPhone || data?.phone;
+    let clean = targetPhone.replace(/\D/g, '');
+    if (clean.length === 10) clean = `91${clean}`;
+
+    if (clean === '919250509070') {
+      const selfErrMsg = 'Meta Error 100: Cannot send WhatsApp message to sender business number (+91 92505 09070). Please enter your personal/team mobile number.';
+      await doc.ref.update({
+        lastMessageAt: new Date().toISOString(),
+        lastMessageStatus: 'FAILED',
+        lastError: selfErrMsg
+      });
+      return res.json({ success: false, error: selfErrMsg, result: { error: selfErrMsg } });
+    }
+
+    const result = await whatsappService.sendWhatsAppTemplate(
       compId,
-      targetPhone,
-      `🧪 *DataNexus Live Test Ping*\nHi ${data?.name || 'Executive'}, your automated WhatsApp alert connection is verified and active.\nTimestamp: ${new Date().toLocaleTimeString('en-IN')}`,
+      clean,
+      'datanexus_update',
+      [
+        'Test Ping Alert',
+        new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+        `Hi ${data?.name || 'Executive'}, WhatsApp alerts are active.`
+      ],
       { type: 'MANUAL_TEST_PING', recipientId }
     );
 
     await doc.ref.update({
       lastMessageAt: new Date().toISOString(),
       lastMessageStatus: result.success ? 'SENT' : (result.status || 'FAILED'),
-      ...(result.sid ? { lastMessageSid: result.sid } : {})
+      lastError: result.error || null,
+      ...(result.wamid || result.sid ? { lastMessageSid: result.wamid || result.sid } : {})
     });
 
-    res.json({ success: result.success, result });
+    res.json({ success: result.success, result, error: result.error });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -104,6 +104,10 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
       setStatusMessage('Error: Please enter a valid 10-digit mobile number with country code (e.g., +91 9876543210).');
       return;
     }
+    if (cleanDigits.endsWith('9250509070')) {
+      setStatusMessage('⚠️ +91 92505 09070 Meta WhatsApp Business account ka SENDER number hai. Meta sender number par self-message allow nahi karta. Kripya apna personal mobile number dalein (jaise +91 98454 30129).');
+      return;
+    }
 
     setIsAddingRecipient(true);
     setStatusMessage(null);
@@ -163,6 +167,12 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
   };
 
   const handleTestPingRecipient = async (id: string, phone: string, name: string) => {
+    const cleanDigits = phone.replace(/\D/g, '');
+    if (cleanDigits.endsWith('9250509070')) {
+      setStatusMessage('⚠️ +91 92505 09070 Meta WhatsApp sender business number hai. Meta khud ke number par message allow nahi karta. Kripya "+ Add WhatsApp Number" button se apna personal mobile number test karein.');
+      return;
+    }
+
     setTestingRecipientId(id);
     setStatusMessage(null);
 
@@ -590,6 +600,12 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
                         </span>
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
+
+                      {rec.phone?.replace(/\D/g, '').endsWith('9250509070') && (
+                        <div className="my-1.5 p-2 rounded-lg bg-amber-950/50 border border-amber-800/60 text-[10px] text-amber-300 leading-snug">
+                          ⚠️ <strong>Sender Account:</strong> Meta khud ke business number par WhatsApp message allow nahi karta. Testing ke liye apna personal mobile number add karein.
+                        </div>
+                      )}
 
                       {/* Subscriptions Pills */}
                       <div className="flex flex-wrap gap-1 mt-2">

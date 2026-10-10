@@ -75,19 +75,18 @@ export function AIChatCard({
     <div
       ref={rootRef}
       className={cn(
-        "flex w-full flex-col rounded-[24px] bg-white",
-        "shadow-[0_0_16.4px_1px_rgba(10,10,10,0.05),0_1px_3px_0_rgba(0,0,0,0.1),0_1px_2px_-1px_rgba(0,0,0,0.1)]",
-        "dark:bg-neutral-950 dark:shadow-[0_0_0_1px_rgba(255,255,255,0.12),0_1px_3px_0_rgba(0,0,0,0.5)]",
+        "flex w-full flex-col rounded-[24px] bg-slate-900 border border-slate-800 text-slate-100",
+        "shadow-2xl shadow-cyan-950/20",
         className,
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 border-b border-border px-5 pb-4 pt-5">
+      <div className="flex items-start justify-between gap-4 border-b border-slate-800 px-5 pb-4 pt-5">
         <div>
-          <h3 className="text-[16px] font-medium leading-6 text-foreground">
+          <h3 className="text-[16px] font-bold leading-6 text-white">
             {title}
           </h3>
-          <p className="mt-0.5 text-sm leading-5 text-muted-foreground">
+          <p className="mt-0.5 text-sm leading-5 text-slate-400">
             {subtitle}
           </p>
         </div>
@@ -101,7 +100,7 @@ export function AIChatCard({
           }}
           whileTap={{ scale: 0.9 }}
           aria-label="Reset conversation"
-          className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[18px] border border-border bg-white text-muted-foreground transition-colors hover:text-foreground dark:bg-neutral-950"
+          className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-[18px] border border-slate-700 bg-slate-800 text-slate-300 transition-colors hover:text-white hover:bg-slate-700 cursor-pointer"
         >
           <motion.span
             animate={{ rotate: spins * 360 }}
@@ -118,16 +117,16 @@ export function AIChatCard({
         <motion.div
           animate={{ y: [0, -3, 0] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-neutral-100 dark:bg-neutral-900"
+          className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-cyan-950/60 border border-cyan-800/60 text-cyan-400 shadow-md"
         >
-          {icon ?? <MessageCircleDashed className="h-5 w-5 text-foreground" />}
+          {icon ?? <MessageCircleDashed className="h-5 w-5 text-cyan-400" />}
         </motion.div>
         <motion.p
           initial={{ opacity: 0, y: 8 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-          className="mt-4 text-[18px] font-medium leading-7 tracking-[-0.45px] text-foreground"
+          className="mt-4 text-[18px] font-bold leading-7 tracking-tight text-white"
         >
           {greeting}
         </motion.p>
@@ -136,7 +135,7 @@ export function AIChatCard({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.25, ease: "easeOut" }}
-          className="mt-1.5 max-w-[190px] text-sm leading-[22.75px] text-muted-foreground"
+          className="mt-1.5 max-w-[280px] text-sm leading-[22px] text-slate-300"
         >
           {prompt}
         </motion.p>
@@ -144,7 +143,7 @@ export function AIChatCard({
 
       {/* Composer */}
       <div className="px-5 pb-5">
-        <div className="rounded-[18px] bg-neutral-200/50 p-3 transition-colors focus-within:bg-neutral-200/70 dark:bg-neutral-800/50 dark:focus-within:bg-neutral-800/70">
+        <div className="rounded-[18px] bg-slate-950/90 border border-slate-800 p-3.5 transition-colors focus-within:border-cyan-500/60 shadow-inner">
           {userActive || !autoType ? (
             <textarea
               ref={textareaRef}
@@ -152,17 +151,17 @@ export function AIChatCard({
               onChange={(event) => setUserMessage(event.target.value)}
               placeholder={placeholder}
               rows={2}
-              className="w-full resize-none bg-transparent text-sm leading-5 text-foreground outline-hidden placeholder:text-muted-foreground"
+              className="w-full resize-none bg-transparent text-sm leading-5 text-white outline-none placeholder:text-slate-500 font-sans"
             />
           ) : (
             <div
               onClick={takeOver}
-              className="min-h-10 w-full cursor-text text-left text-sm leading-5 text-foreground"
+              className="min-h-10 w-full cursor-text text-left text-sm leading-5 text-slate-100 font-sans"
             >
-              {message}
+              <span className="text-white font-medium">{message}</span>
               <motion.span
                 aria-hidden
-                className="ml-px inline-block h-3.5 w-px bg-foreground align-middle"
+                className="ml-px inline-block h-3.5 w-0.5 bg-cyan-400 align-middle"
                 animate={{ opacity: [1, 1, 0, 0] }}
                 transition={{
                   duration: 1,
@@ -171,11 +170,11 @@ export function AIChatCard({
                 }}
               />
               {!message ? (
-                <span className="text-muted-foreground">{placeholder}</span>
+                <span className="text-slate-500">{placeholder}</span>
               ) : null}
             </div>
           )}
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-2.5 flex items-center justify-between">
             <motion.button
               type="button"
               onClick={onAttach}
@@ -183,7 +182,7 @@ export function AIChatCard({
               whileTap={{ scale: 0.88 }}
               transition={{ type: "spring", bounce: 0.4, duration: 0.4 }}
               aria-label="Add files"
-              className="flex h-[30px] w-[30px] items-center justify-center rounded-[18px] border border-border bg-white text-foreground dark:bg-neutral-950"
+              className="flex h-[32px] w-[32px] items-center justify-center rounded-[18px] border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 cursor-pointer"
             >
               <Plus className="h-4 w-4" />
             </motion.button>
@@ -209,7 +208,7 @@ export function AIChatCard({
                 times: [0, 0.35, 1],
               }}
               aria-label="Send message"
-              className="group flex h-[30px] w-[30px] items-center justify-center rounded-[18px] bg-black text-white dark:bg-white dark:text-neutral-950"
+              className="group flex h-[32px] w-[32px] items-center justify-center rounded-[18px] bg-gradient-to-tr from-cyan-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:to-blue-500 cursor-pointer"
             >
               <ArrowUp className="h-4 w-4 transition-transform duration-200 group-hover:-translate-y-px" />
             </motion.button>
