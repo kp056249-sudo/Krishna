@@ -1,6 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, Send, Mic, MicOff, Plus, ArrowUp, RefreshCw, Copy, Check, Trash2, ArrowRight, ShieldCheck, Database, Key } from 'lucide-react';
+import { Sparkles, Send, Mic, MicOff, Plus, ArrowUp, RefreshCw, Copy, Check, Trash2, ArrowRight, ShieldCheck, Database, Key, Bot, MessageSquare, Terminal, Volume2 } from 'lucide-react';
 import { askDataNexusCopilotWithMeta } from '../../services/geminiService';
+import { BoltStyleChat } from '../ui/bolt-style-chat';
+import { AIChatCard } from '../ui/ai-chat-card';
+import { ModalCard } from '../ui/modal-card';
 
 export const AI_MODELS = [
   { id: 'gemini-3.8-flash', label: '3.8 Flash', title: 'Gemini 3.8 Flash' },
@@ -30,6 +33,7 @@ export const RealAiPage: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [attachedFileName, setAttachedFileName] = useState<string | null>(null);
+  const [aiInterface, setAiInterface] = useState<'bolt' | 'chat_card' | 'voice' | 'studio'>('bolt');
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -137,7 +141,7 @@ export const RealAiPage: React.FC = () => {
   };
 
   return (
-    <div className="relative flex flex-col justify-between min-h-[calc(100vh-80px)] max-w-4xl mx-auto font-sans text-slate-100 selection:bg-cyan-500 selection:text-white pb-32">
+    <div className="relative flex flex-col justify-between min-h-[calc(100vh-80px)] max-w-5xl mx-auto font-sans text-slate-100 selection:bg-cyan-500 selection:text-white pb-32">
       {/* Hidden File Input */}
       <input
         type="file"
@@ -147,27 +151,143 @@ export const RealAiPage: React.FC = () => {
         className="hidden"
       />
 
-      {/* Top Header / Action Bar */}
-      <div className="flex items-center justify-between py-2 border-b border-slate-900 mb-4 text-xs">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span className="font-mono-code font-bold text-slate-300">
-            {AI_MODELS.find(m => m.id === selectedModel)?.title || selectedModel}
-          </span>
-          <span className="text-slate-600">·</span>
-          <span className="text-slate-400">100% Real Google Gemini</span>
+      {/* AI Interface Navigation Tabs */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 p-2 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md">
+        <div className="flex items-center gap-1.5 overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setAiInterface('bolt')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              aiInterface === 'bolt'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Bot className="w-4 h-4 text-cyan-300" />
+            <span>Bolt Multi-Model AI</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAiInterface('chat_card')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              aiInterface === 'chat_card'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4 text-purple-300" />
+            <span>AI Chat Card</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAiInterface('voice')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              aiInterface === 'voice'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Volume2 className="w-4 h-4 text-emerald-300" />
+            <span>Voice Mode AI</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setAiInterface('studio')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              aiInterface === 'studio'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>Astra Studio Console</span>
+          </button>
         </div>
 
-        {messages.length > 0 && (
-          <button
-            onClick={() => setMessages([])}
-            className="flex items-center gap-1 text-slate-400 hover:text-red-400 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-900"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span>New Chat</span>
-          </button>
-        )}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Real Google Gemini AI Active</span>
+        </div>
       </div>
+
+      {aiInterface === 'bolt' && (
+        <div className="flex-1 w-full animate-in fade-in duration-200">
+          <BoltStyleChat />
+        </div>
+      )}
+
+      {aiInterface === 'voice' && (
+        <div className="flex-1 flex flex-col items-center justify-center py-6 w-full animate-in fade-in duration-200">
+          <ModalCard isOpen={true} />
+        </div>
+      )}
+
+      {aiInterface === 'chat_card' && (
+        <div className="flex-1 flex flex-col justify-start max-w-2xl mx-auto w-full py-4 space-y-6 animate-in fade-in duration-200">
+          <AIChatCard
+            title="DataNexus Real AI"
+            subtitle="Ask anything about orders, COD, profit, or code"
+            onSend={(msg) => handleSend(msg)}
+          />
+
+          {loading && (
+            <div className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-400">
+              <RefreshCw className="w-4 h-4 animate-spin text-cyan-400" />
+              <span>Querying Google Gemini AI in real time...</span>
+            </div>
+          )}
+
+          {messages.length > 0 && (
+            <div className="space-y-4 pt-4 border-t border-slate-800">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Conversation Log</div>
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                    msg.role === 'user'
+                      ? 'bg-blue-600/30 border border-blue-500/30 text-white ml-8'
+                      : 'bg-slate-900 border border-slate-800 text-slate-200 mr-8 shadow-md'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400 mb-1.5">
+                    <span>{msg.role === 'user' ? 'You' : 'Gemini AI'}</span>
+                    <span className="text-slate-500 font-normal">{msg.timestamp}</span>
+                  </div>
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {aiInterface === 'studio' && (
+        <div className="flex-1 flex flex-col justify-between w-full animate-in fade-in duration-200">
+          {/* Top Header / Action Bar */}
+          <div className="flex items-center justify-between py-2 border-b border-slate-900 mb-4 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-mono-code font-bold text-slate-300">
+                {AI_MODELS.find(m => m.id === selectedModel)?.title || selectedModel}
+              </span>
+              <span className="text-slate-600">·</span>
+              <span className="text-slate-400">100% Real Google Gemini</span>
+            </div>
+
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMessages([])}
+                className="flex items-center gap-1 text-slate-400 hover:text-red-400 transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-slate-900"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>New Chat</span>
+              </button>
+            )}
+          </div>
 
       {/* Main Content Area */}
       {messages.length === 0 ? (
@@ -394,5 +514,7 @@ export const RealAiPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
+    )}
+  </div>
+);
 };

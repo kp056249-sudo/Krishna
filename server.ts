@@ -1293,10 +1293,71 @@ app.get('/api/cron/daily', async (req: Request, res: Response) => {
 });
 
 // -----------------------------------------------------------------------------
+// Meta WhatsApp Cloud API Template Management & Testing Endpoints
+// -----------------------------------------------------------------------------
+app.get('/api/whatsapp/templates', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const compId = req.user!.companyId;
+    const templates = await whatsappService.getCompanyTemplates(compId);
+    res.json({ success: true, templates, events: whatsappService.TEMPLATE_EVENTS });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/whatsapp/templates/events', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  res.json({ success: true, events: whatsappService.TEMPLATE_EVENTS });
+});
+
+app.post('/api/whatsapp/templates/save', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const compId = req.user!.companyId;
+    const { templates } = req.body;
+    if (!Array.isArray(templates)) {
+      return res.status(400).json({ success: false, error: 'Invalid templates array' });
+    }
+    const saved = await whatsappService.saveCompanyTemplates(compId, templates);
+    res.json({ success: saved, message: 'Template configuration updated successfully in Firestore.' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/whatsapp/templates/test', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const compId = req.user!.companyId;
+    const { templateName, recipientPhone, parameters } = req.body;
+    if (!templateName || !recipientPhone) {
+      return res.status(400).json({ success: false, error: 'templateName and recipientPhone are required.' });
+    }
+
+    const result = await whatsappService.sendWhatsAppTemplate(
+      compId,
+      recipientPhone,
+      templateName,
+      parameters || [],
+      { type: 'MANUAL_TEMPLATE_TEST' }
+    );
+
+    res.json({
+      success: result.success,
+      wamid: result.wamid,
+      sid: result.sid,
+      status: result.status,
+      error: result.error,
+      errorCode: result.errorCode,
+      result
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
 // Meta WhatsApp Cloud API Inbound Webhooks
 // -----------------------------------------------------------------------------
 // Webhook verification endpoint for Meta Developer Portal
-app.get(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp'], (req: Request, res: Response) => {
+app.get(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp', '/api/whatsapp/webhook'], (req: Request, res: Response) => {
   const mode = req.query['hub.mode'];
   const token = req.query['hub.verify_token'];
   const challenge = req.query['hub.challenge'];
@@ -1311,10 +1372,14 @@ app.get(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp'], (req: Requ
 });
 
 // Incoming message & status notification webhook from Meta WhatsApp Cloud API
-app.post(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp'], async (req: Request, res: Response) => {
+app.post(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp', '/api/whatsapp/webhook'], async (req: Request, res: Response) => {
   try {
     const body = req.body;
     if (body.object === 'whatsapp_business_account') {
+      // 1. Process delivery status updates & opt-outs
+      await whatsappService.processMetaWebhook(body);
+
+      // 2. Process COD confirmation/cancellation
       const entry = body.entry?.[0];
       const change = entry?.changes?.[0]?.value;
       const message = change?.messages?.[0];
@@ -1323,7 +1388,6 @@ app.post(['/api/webhooks/whatsapp', '/webhook', '/webhooks/whatsapp'], async (re
         const from = message.from; // Phone number
         const text = message.text?.body?.toLowerCase() || '';
 
-        // Process COD confirmation/cancellation
         const companiesSnap = await adminDb.collection('companies').get();
         for (const compDoc of companiesSnap.docs) {
           const ordersSnap = await adminDb.collection('companies').doc(compDoc.id).collection('orders').get();

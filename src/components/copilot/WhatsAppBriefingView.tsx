@@ -32,6 +32,7 @@ import {
 import { EnterpriseKPIs, WhatsAppRecipient } from '../../types';
 import { formatLakhs } from '../../utils/financialMetrics';
 import { WhatsAppChatbot } from './WhatsAppChatbot';
+import { WhatsAppTemplatesSettings } from './WhatsAppTemplatesSettings';
 
 interface WhatsAppBriefingViewProps {
   kpis: EnterpriseKPIs;
@@ -39,6 +40,7 @@ interface WhatsAppBriefingViewProps {
 }
 
 export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis, currency }) => {
+  const [activeTab, setActiveTab] = useState<'dispatcher' | 'templates'>('dispatcher');
   const [schedulerActive, setSchedulerActive] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -317,14 +319,43 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
         </div>
       )}
 
-      {/* ========================================================================= */}
-      {/* 🤖 DATANEXUS AI CHATBOT (Multi-Key 3 Gemini Load-Balanced Chatbot)         */}
-      {/* ========================================================================= */}
-      <WhatsAppChatbot />
+      {/* View Mode Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <button
+          type="button"
+          onClick={() => setActiveTab('dispatcher')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'dispatcher'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" />
+          <span>8 AM Dispatcher &amp; AI Chatbot</span>
+        </button>
 
-      {/* ========================================================================= */}
-      {/* RECIPIENT MANAGEMENT & AUTO-MESSAGE SECTION (Add / Remove Numbers)        */}
-      {/* ========================================================================= */}
+        <button
+          type="button"
+          onClick={() => setActiveTab('templates')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeTab === 'templates'
+              ? 'bg-emerald-600 text-white shadow-md'
+              : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>WhatsApp Templates Settings (Meta Approved)</span>
+        </button>
+      </div>
+
+      {activeTab === 'templates' ? (
+        <WhatsAppTemplatesSettings />
+      ) : (
+        <>
+          {/* 🤖 DATANEXUS AI CHATBOT (Multi-Key 3 Gemini Load-Balanced Chatbot) */}
+          <WhatsAppChatbot />
+
+          {/* RECIPIENT MANAGEMENT & AUTO-MESSAGE SECTION */}
       <div className="p-6 rounded-2xl bg-slate-900/95 border border-slate-800 shadow-xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
@@ -780,6 +811,8 @@ _Automated 08:00 AM IST scheduled briefing for registered stakeholder devices vi
           </div>
         </div>
       </div>
+        </>
+      )}
     </div>
   );
 };
