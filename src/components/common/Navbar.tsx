@@ -93,7 +93,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const selectedStore = stores.find((s) => s.id === selectedStoreId) || stores[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-slate-200/90 px-3 sm:px-6 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <header className="sticky top-0 z-40 bg-white border-b border-slate-200/90 px-3 sm:px-6 py-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex-shrink-0">
       <div className="flex items-center justify-between gap-3 w-full">
         {/* Left: Hamburger Button + Brand */}
         <div className="flex items-center gap-2.5 sm:gap-3.5 flex-shrink-0">
@@ -119,7 +119,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">DATANEXUS</span>
+                <span className="font-extrabold text-sm sm:text-base tracking-tight text-slate-900">KP DATANEXUS</span>
                 <span className="text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 text-[#233876] hidden xs:inline">ENTERPRISE</span>
               </div>
               <p className="hidden md:block text-[10px] text-slate-500 font-medium tracking-tight">Enterprise E-Commerce OS</p>

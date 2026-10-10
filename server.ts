@@ -1,4 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
+import compression from 'compression';
 import fs from 'fs';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -61,6 +62,7 @@ console.log(`[DataNexus Server] RAZORPAY_KEY: ${(process.env.RAZORPAY_KEY || pro
 // -----------------------------------------------------------------------------
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
+app.use(compression({ threshold: 1024, level: 6 }));
 
 // Raw body for webhooks (Must be before json parser)
 app.post('/api/webhooks/razorpay', express.raw({ type: 'application/json' }));
@@ -2723,6 +2725,36 @@ app.get('/api/audit-logs', requireAuth, async (req: AuthenticatedRequest, res: R
   res.json({ success: true, logs: snap.docs.map(d => d.data()) });
 });
 
+app.get('/robots.txt', (req: Request, res: Response) => {
+  res.type('text/plain');
+  res.send(`User-agent: *\nAllow: /\n\nSitemap: https://krishna-1s9h.onrender.com/sitemap.xml\n`);
+});
+
+app.get('/sitemap.xml', (req: Request, res: Response) => {
+  res.type('application/xml');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://krishna-1s9h.onrender.com/</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://krishna-1s9h.onrender.com/dashboard</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://krishna-1s9h.onrender.com/store-connect</loc>
+    <lastmod>2026-10-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+</urlset>`);
+});
+
 // -----------------------------------------------------------------------------
 // 12. SERVER STARTUP
 // -----------------------------------------------------------------------------
@@ -2735,8 +2767,20 @@ async function startServer() {
     const distPath = fs.existsSync(path.join(process.cwd(), 'dist'))
       ? path.join(process.cwd(), 'dist')
       : path.join(__dirname, 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+    app.use(express.static(distPath, {
+      maxAge: '1y',
+      immutable: true,
+      etag: true,
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      },
+    }));
+    app.get('*', (req, res) => {
+      res.setHeader('Cache-Control', 'no-cache');
+      res.sendFile(path.join(distPath, 'index.html'));
+    });
   }
 
   if (process.env.NODE_ENV !== 'test') {

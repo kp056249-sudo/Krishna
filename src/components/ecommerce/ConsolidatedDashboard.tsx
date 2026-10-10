@@ -147,7 +147,7 @@ export const ConsolidatedDashboard: React.FC<ConsolidatedDashboardProps> = ({
             Empowering futures through intelligent e-commerce
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 max-w-xl leading-relaxed">
-            DataNexus Enterprise OS provides world-class multi-channel e-commerce intelligence with automated WhatsApp operations and live margin optimization.
+            KP DataNexus Enterprise OS provides world-class multi-channel e-commerce intelligence with automated WhatsApp operations and live margin optimization.
           </p>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button

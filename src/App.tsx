@@ -338,7 +338,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-hidden">
       {/* Dynamic Themed Ambient Background Glows */}
       <div
         className="fixed top-0 left-1/4 w-[750px] h-[380px] rounded-full blur-[140px] pointer-events-none opacity-20 -z-10 transition-all duration-700"
@@ -383,8 +383,8 @@ export default function App() {
         />
       )}
 
-      {/* Main Workspace: Full Width Page Content */}
-      <div className="flex-1 flex w-full relative min-h-0">
+      {/* Main Workspace: Full Width Page Content with Independent Scrolling */}
+      <div className="flex-1 flex w-full relative min-h-0 overflow-hidden">
         <Sidebar
           activeTab={activeTab}
           onSelectTab={(tab) => {
@@ -398,7 +398,7 @@ export default function App() {
         />
 
         <main
-          className={`flex-1 p-3 sm:p-5 lg:p-6 pb-28 sm:pb-24 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
+          className={`flex-1 h-full p-3 sm:p-5 lg:p-6 pb-28 sm:pb-24 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden overscroll-contain transition-all duration-300 ${
             mobileMenuOpen
               ? 'max-lg:select-none max-lg:pointer-events-none max-lg:opacity-40 max-lg:scale-[0.99]'
               : 'opacity-100 scale-100'

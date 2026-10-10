@@ -138,25 +138,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={`
         fixed lg:static top-0 left-0 bottom-0
-        h-full lg:min-h-screen
+        h-full
         bg-white
         border-r border-slate-200/90
         z-50 lg:z-10
         transition-transform duration-300 ease-in-out
         flex flex-col
+        overflow-hidden
         ${isOpen ? 'translate-x-0 shadow-2xl shadow-slate-900/20 pointer-events-auto' : '-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto'}
         w-[88vw] sm:w-80 lg:w-64 flex-shrink-0
       `}
     >
-      {/* Drawer Header with Brand & Close X */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white">
+      {/* Drawer Header with Brand & Close X - Fixed header */}
+      <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#233876] text-white flex items-center justify-center shadow-md flex-shrink-0">
             <ShieldCheck className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-slate-900">DATANEXUS</span>
+              <span className="font-extrabold text-sm tracking-tight text-slate-900">KP DATANEXUS</span>
             </div>
             <p className="text-[10px] text-slate-500 font-medium">Enterprise E-Commerce OS</p>
           </div>
@@ -171,8 +172,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Scrollable Navigation */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+      {/* Scrollable Navigation - Independent scroll with overscroll-contain */}
+      <div className="flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-5">
         {navSections.map((section, sIdx) => (
           <div key={sIdx} className="space-y-1">
             <h3 className="px-2.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
@@ -219,8 +220,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Bottom Promo / AI Autopilot Card (Matches Photo Bottom Left Card) */}
-      <div className="p-3 border-t border-slate-100 bg-white">
+      {/* Bottom Promo / AI Autopilot Card (Matches Photo Bottom Left Card) - Fixed at bottom */}
+      <div className="p-3 border-t border-slate-100 bg-white flex-shrink-0">
         <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white shadow-md relative overflow-hidden">
           <div className="text-sm font-bold leading-tight">Spring Intake 2026</div>
           <p className="text-[11px] text-blue-100 mt-1 leading-snug">
