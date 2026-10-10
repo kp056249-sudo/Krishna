@@ -338,7 +338,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-x-hidden">
       {/* Dynamic Themed Ambient Background Glows */}
       <div
         className="fixed top-0 left-1/4 w-[750px] h-[380px] rounded-full blur-[140px] pointer-events-none opacity-20 -z-10 transition-all duration-700"
@@ -374,11 +374,11 @@ export default function App() {
         onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
       />
 
-      {/* Background Dimmed Overlay when Menu is Open (Below Navbar) */}
+      {/* Background Dimmed Overlay when Menu is Open on mobile & tablet (Below Navbar) */}
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-x-0 bottom-0 top-14 z-30 bg-black/60 animate-in fade-in duration-200 cursor-pointer"
+          className="lg:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
           aria-label="Close Navigation Overlay"
         />
       )}
@@ -400,7 +400,7 @@ export default function App() {
         <main
           className={`flex-1 p-3 sm:p-5 lg:p-6 pb-28 sm:pb-24 w-full max-w-7xl mx-auto min-w-0 overflow-y-auto overflow-x-hidden transition-all duration-300 ${
             mobileMenuOpen
-              ? 'select-none pointer-events-none opacity-40 scale-[0.99]'
+              ? 'max-lg:select-none max-lg:pointer-events-none max-lg:opacity-40 max-lg:scale-[0.99]'
               : 'opacity-100 scale-100'
           }`}
         >
@@ -432,10 +432,10 @@ export default function App() {
           onClick={() => setActiveTab('real_ai_page')}
           aria-label="Open AI Copilot"
           title="Open AI Copilot & Voice"
-          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-slate-900/95 hover:bg-slate-800 text-cyan-400 hover:text-white font-bold text-xs shadow-xl border border-cyan-500/40 hover:border-cyan-400 backdrop-blur-md transition-all cursor-pointer group"
+          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#233876] hover:bg-[#1a2b5c] text-white font-bold text-xs shadow-xl border border-white/20 backdrop-blur-md transition-all cursor-pointer group active:scale-95"
         >
-          <Sparkles className="w-3.5 h-3.5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          <span className="hidden sm:inline font-mono">AI Copilot</span>
+          <Sparkles className="w-3.5 h-3.5 text-blue-200 group-hover:scale-110 transition-transform" />
+          <span className="hidden sm:inline font-sans">AI Copilot</span>
         </button>
       )}
     </div>

@@ -11,7 +11,8 @@ export interface ThemeColorOption {
 }
 
 export const BRAND_THEME_COLORS: ThemeColorOption[] = [
-  { id: 'cyan', name: 'Cyan Electric (Default)', hex: '#06b6d4', rgb: '6, 182, 212', accentClass: 'text-cyan-400', borderClass: 'border-cyan-500', bgLightClass: 'bg-cyan-500/10' },
+  { id: 'royal_blue', name: 'Royal Navy Blue (Primary)', hex: '#1e3a8a', rgb: '30, 58, 138', accentClass: 'text-blue-800', borderClass: 'border-blue-800', bgLightClass: 'bg-blue-800/10' },
+  { id: 'cyan', name: 'Cyan Electric', hex: '#06b6d4', rgb: '6, 182, 212', accentClass: 'text-cyan-400', borderClass: 'border-cyan-500', bgLightClass: 'bg-cyan-500/10' },
   { id: 'emerald', name: 'Emerald Velvet', hex: '#10b981', rgb: '16, 185, 129', accentClass: 'text-emerald-400', borderClass: 'border-emerald-500', bgLightClass: 'bg-emerald-500/10' },
   { id: 'violet', name: 'Royal Violet', hex: '#8b5cf6', rgb: '139, 92, 246', accentClass: 'text-violet-400', borderClass: 'border-violet-500', bgLightClass: 'bg-violet-500/10' },
   { id: 'indigo', name: 'Electric Indigo', hex: '#6366f1', rgb: '99, 102, 241', accentClass: 'text-indigo-400', borderClass: 'border-indigo-500', bgLightClass: 'bg-indigo-500/10' },
@@ -34,7 +35,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [mode, setMode] = useState<'dark' | 'light'>('dark');
+  const [mode, setMode] = useState<'dark' | 'light'>('light');
   const [activeColor, setActiveColor] = useState<ThemeColorOption>(BRAND_THEME_COLORS[0]);
 
   // Load saved preferences on mount
