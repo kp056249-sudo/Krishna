@@ -45,7 +45,7 @@ export async function executeDailyBriefing(companyId: string, specificPhone?: st
     }
 
     if (recipientList.length === 0) {
-      const defaultPhone = state?.targetPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919845430129';
+      const defaultPhone = state?.targetPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919250509070';
       recipientList = [{ phone: defaultPhone, name: 'Founder' }];
     }
 

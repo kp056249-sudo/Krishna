@@ -981,7 +981,7 @@ app.post('/api/whatsapp/test', requireAuth, async (req: AuthenticatedRequest, re
   const { recipientPhone } = req.body;
   const result = await whatsappService.sendWhatsAppMessage(
     req.user!.companyId,
-    recipientPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000',
+    recipientPhone || process.env.FOUNDER_WHATSAPP_PHONE || '919250509070',
     '🧪 *DataNexus Gateway Test*\nYour Meta WhatsApp Cloud API connection is verified and active.'
   );
   if (!result.success) return res.status(400).json(result);
@@ -1084,7 +1084,7 @@ app.post('/api/whatsapp/config/test', requireAuth, async (req: AuthenticatedRequ
 
 app.post('/api/whatsapp/send-otp', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { phone, amount, orderNumber, pincode } = req.body;
-  const targetPhone = phone || process.env.FOUNDER_WHATSAPP_PHONE || '919800000000';
+  const targetPhone = phone || process.env.FOUNDER_WHATSAPP_PHONE || '919250509070';
   const otpCode = Math.floor(100000 + Math.random() * 900000);
   const msg = `🛡️ *DataNexus High-Risk COD Verification*\nOrder #${orderNumber || '1016'} (Amount: ₹${amount || '2,499'} | Pincode: ${pincode || '800001'}).\n\nYour 1-tap delivery confirmation code is *${otpCode}*.\nOr convert to Prepaid instantly and get *₹50 FLAT OFF*: https://pay.datanexus.io/c/${orderNumber || '1016'}`;
 
@@ -1111,13 +1111,9 @@ app.get('/api/whatsapp/recipients', requireAuth, async (req: AuthenticatedReques
     let recipients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     if (recipients.length === 0) {
-      let founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '919845430129';
+      let founderPhone = process.env.FOUNDER_WHATSAPP_PHONE || '+91 92505 09070';
       let clean = founderPhone.replace(/\D/g, '');
       if (clean.length === 10) clean = `91${clean}`;
-      if (clean === '919250509070') {
-        founderPhone = '+91 98454 30129';
-        clean = '919845430129';
-      }
       const defaultDoc = {
         phone: founderPhone,
         cleanPhone: clean,

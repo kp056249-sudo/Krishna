@@ -101,11 +101,7 @@ export const WhatsAppBriefingView: React.FC<WhatsAppBriefingViewProps> = ({ kpis
     if (e) e.preventDefault();
     const cleanDigits = newPhone.replace(/\D/g, '');
     if (cleanDigits.length < 10) {
-      setStatusMessage('Error: Please enter a valid 10-digit mobile number with country code (e.g., +91 9876543210).');
-      return;
-    }
-    if (cleanDigits.endsWith('9250509070')) {
-      setStatusMessage('⚠️ +91 92505 09070 Meta WhatsApp Business account ka SENDER number hai. Meta sender number par self-message allow nahi karta. Kripya apna personal mobile number dalein (jaise +91 98454 30129).');
+      setStatusMessage('Error: Please enter a valid 10-digit mobile number with country code (e.g., +91 9250509070).');
       return;
     }
 
