@@ -45,7 +45,7 @@ export const GeminiLiveCallsPage: React.FC = () => {
   const [typedCommand, setTypedCommand] = useState('');
   const [lastAiResponse, setLastAiResponse] = useState<string | null>(null);
   const [lastActionsExecuted, setLastActionsExecuted] = useState<any[]>([]);
-  const [selectedModel, setSelectedModel] = useState<'gemini-3.8-flash' | 'gemini-3.6-flash'>('gemini-3.8-flash');
+  const [selectedModel, setSelectedModel] = useState<'gemini-2.5-flash' | 'gemini-2.0-flash'>('gemini-2.5-flash');
 
   const [callLogs, setCallLogs] = useState<GeminiCallLog[]>([]);
   const [telemetry, setTelemetry] = useState<any>(null);
@@ -311,29 +311,29 @@ export const GeminiLiveCallsPage: React.FC = () => {
             <div className="flex items-center rounded-lg bg-slate-950 p-1 border border-slate-800 gap-1">
               <button
                 type="button"
-                onClick={() => setSelectedModel('gemini-3.8-flash')}
+                onClick={() => setSelectedModel('gemini-2.5-flash')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  selectedModel === 'gemini-3.8-flash'
+                  selectedModel === 'gemini-2.5-flash'
                     ? 'bg-indigo-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                 }`}
-                title="Uses Google Gemini 3.8 Flash"
+                title="Uses Google Gemini 2.5 Flash"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-3.8-flash' ? 'bg-emerald-300 animate-pulse' : 'bg-slate-500'}`} />
-                <span>Gemini 3.8 Flash</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-2.5-flash' ? 'bg-emerald-300 animate-pulse' : 'bg-slate-500'}`} />
+                <span>Gemini 2.5 Flash</span>
               </button>
               <button
                 type="button"
-                onClick={() => setSelectedModel('gemini-3.6-flash')}
+                onClick={() => setSelectedModel('gemini-2.0-flash')}
                 className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                  selectedModel === 'gemini-3.6-flash'
+                  selectedModel === 'gemini-2.0-flash'
                     ? 'bg-cyan-600 text-white shadow-md'
                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
                 }`}
-                title="Uses Google Gemini 3.6 Flash"
+                title="Uses Google Gemini 2.0 Flash"
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-3.6-flash' ? 'bg-cyan-300 animate-pulse' : 'bg-slate-500'}`} />
-                <span>Gemini 3.6 Flash</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${selectedModel === 'gemini-2.0-flash' ? 'bg-cyan-300 animate-pulse' : 'bg-slate-500'}`} />
+                <span>Gemini 2.0 Flash</span>
               </button>
             </div>
 
@@ -500,7 +500,7 @@ export const GeminiLiveCallsPage: React.FC = () => {
                     Gemini Spoken Response:
                   </span>
                   <span className="text-[10px] text-indigo-300 font-mono-code font-bold">
-                    {selectedModel === 'gemini-3.8-flash' ? 'Gemini 3.8 Flash' : 'Gemini 3.6 Flash'}
+                    {selectedModel === 'gemini-2.5-flash' ? 'Gemini 2.5 Flash' : 'Gemini 2.0 Flash'}
                   </span>
                 </div>
                 <p className="leading-relaxed font-sans text-white text-xs">{lastAiResponse}</p>
