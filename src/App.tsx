@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { NavigationTab, StoreAccount, OrderItem, EnterpriseKPIs } from './types';
 import { Navbar } from './components/common/Navbar';
 import { Sidebar } from './components/common/Sidebar';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 import { QuickSearchModal } from './components/common/QuickSearchModal';
 import { EmptyState } from './components/common/EmptyState';
 import { useAuthCompany } from './context/AuthCompanyContext';
@@ -147,6 +148,12 @@ export default function App() {
       localStorage.setItem('datanexus_active_tab', tab);
     } catch {}
   };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+  }, [activeTab]);
 
   const [selectedStoreId, setSelectedStoreId] = useState<string>('');
 
@@ -338,7 +345,7 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-hidden">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-hidden">
       {/* Dynamic Themed Ambient Background Glows */}
       <div
         className="fixed top-0 left-1/4 w-[750px] h-[380px] rounded-full blur-[140px] pointer-events-none opacity-20 -z-10 transition-all duration-700"
@@ -432,12 +439,23 @@ export default function App() {
           onClick={() => setActiveTab('real_ai_page')}
           aria-label="Open AI Copilot"
           title="Open AI Copilot & Voice"
-          className="fixed bottom-4 right-4 z-40 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#233876] hover:bg-[#1a2b5c] text-white font-bold text-xs shadow-xl border border-white/20 backdrop-blur-md transition-all cursor-pointer group active:scale-95"
+          className="fixed bottom-16 sm:bottom-4 right-4 z-40 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#233876] hover:bg-[#1a2b5c] text-white font-bold text-xs shadow-xl border border-white/20 backdrop-blur-md transition-all cursor-pointer group active:scale-95"
         >
           <Sparkles className="w-3.5 h-3.5 text-blue-200 group-hover:scale-110 transition-transform" />
           <span className="hidden sm:inline font-sans">AI Copilot</span>
         </button>
       )}
+
+      {/* Mobile Bottom Navigation Dock (Visible on Mobile & Tablet) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={(tab) => {
+          setActiveTab(tab);
+          setMobileMenuOpen(false);
+        }}
+        mobileMenuOpen={mobileMenuOpen}
+        onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)}
+      />
     </div>
   );
 }

@@ -96,7 +96,7 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
   // Terminal stream & history states
   const [streamLogs, setStreamLogs] = useState<StreamLogItem[]>([]);
   const [executionResults, setExecutionResults] = useState<DirectiveExecutionItem[]>([]);
-  const terminalBottomRef = useRef<HTMLDivElement>(null);
+  const terminalBodyRef = useRef<HTMLDivElement>(null);
 
   // Calculated sentinel real metrics
   const totalOrdersCount = orders.length;
@@ -109,13 +109,16 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
   const totalGmv = orders.reduce((sum, o) => sum + (o.totalAmount || o.amount || 0), 0);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
     fetchStreamLogs();
     fetchDirectiveHistory();
     fetchTriEngineStatus();
   }, []);
 
   useEffect(() => {
-    terminalBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalBodyRef.current) {
+      terminalBodyRef.current.scrollTop = terminalBodyRef.current.scrollHeight;
+    }
   }, [streamLogs]);
 
   const fetchStreamLogs = async () => {
@@ -743,7 +746,7 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
           </div>
 
           {/* Terminal Body */}
-          <div className="flex-1 p-4 font-mono text-[11px] overflow-y-auto space-y-2.5 bg-black/60 text-slate-300 select-text">
+          <div ref={terminalBodyRef} className="flex-1 p-4 font-mono text-[11px] overflow-y-auto space-y-2.5 bg-black/60 text-slate-300 select-text">
             {streamLogs.map((log) => (
               <div key={log.id} className="leading-relaxed">
                 <span className="text-slate-500">[{log.time || log.timestamp}]</span>{' '}
@@ -769,7 +772,6 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
                 <span>[AGENT_REASONING] Synthesizing connected store data with Gemini 2.5 Flash...</span>
               </div>
             )}
-            <div ref={terminalBottomRef} />
           </div>
 
           {/* Terminal Quick Input */}
