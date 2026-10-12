@@ -339,30 +339,32 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
         {/* Top Control Actions */}
         <div className="flex flex-wrap items-center gap-2.5">
           <button
+            type="button"
             onClick={handleTestWhatsApp}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 text-emerald-300 text-xs font-semibold cursor-pointer transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl !bg-[#0b1120] hover:!bg-[#111c38] border border-emerald-500/60 !text-emerald-300 text-xs font-bold cursor-pointer transition-colors shadow-sm active:scale-95"
             title="Dispatch Test Briefing to WhatsApp"
           >
-            <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Test WhatsApp Gateway</span>
+            <MessageSquare className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span className="!text-emerald-300 font-bold whitespace-nowrap">Test WhatsApp Gateway</span>
           </button>
 
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Server-Side Gemini 2.5</span>
+          <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl !bg-[#0b1120] border border-cyan-500/60 !text-cyan-300 text-xs font-bold shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+            <span className="!text-cyan-300 font-bold whitespace-nowrap">Server-Side Gemini 2.5</span>
           </div>
 
           {/* Autonomous Mode Toggle */}
           <button
+            type="button"
             onClick={toggleAutonomousMode}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
               autonomousMode
-                ? 'bg-cyan-950/80 border-cyan-500/60 text-cyan-300 shadow-lg shadow-cyan-500/20'
-                : 'bg-slate-900 border-slate-700 text-slate-400'
+                ? '!bg-cyan-950/90 border-cyan-500/60 !text-cyan-300 shadow-lg shadow-cyan-500/20'
+                : '!bg-[#0b1120] border-slate-700 !text-slate-300'
             }`}
           >
             <span className={`w-2 h-2 rounded-full ${autonomousMode ? 'bg-cyan-400 animate-ping' : 'bg-slate-500'}`} />
-            <span>{autonomousMode ? 'AUTONOMOUS ACTIVE' : 'SUPERVISED APPROVAL'}</span>
+            <span className="font-bold whitespace-nowrap">{autonomousMode ? 'AUTONOMOUS ACTIVE' : 'SUPERVISED APPROVAL'}</span>
           </button>
         </div>
       </div>

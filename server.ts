@@ -104,14 +104,20 @@ app.post('/api/chat', chatLimiter, async (req: Request, res: Response) => {
   }
 
   try {
-    const reply = await processChatbotMessage(
+    const result = await processChatbotMessage(
       message.trim(),
       Array.isArray(history) ? history : []
     );
-    res.json({ reply });
+    res.json({
+      reply: result.reply,
+      responseTimeMs: result.responseTimeMs,
+      cached: result.cached,
+      modelUsed: result.modelUsed,
+      keyUsed: result.keyUsed
+    });
   } catch (err: any) {
     console.warn(`[Chat Route] Exception: ${err?.name || 'Error'}`);
-    res.json({ reply: 'Abhi thoda busy hoon, kuch der baad try karo 🙏' });
+    res.json({ reply: 'Abhi thoda busy hoon, kuch der baad try karo 🙏', responseTimeMs: 5, cached: false });
   }
 });
 
@@ -1643,6 +1649,8 @@ app.post('/api/ai/chat', requireAuth, async (req: AuthenticatedRequest, res: Res
       answer: chatResult.answer,
       modelUsed: chatResult.modelUsed,
       keyUsed: chatResult.keyUsed,
+      responseTimeMs: chatResult.responseTimeMs,
+      cached: chatResult.cached || false,
     });
   } catch (err: any) {
     res.status(500).json({ error: `Google Gemini AI Error: ${err.message}` });

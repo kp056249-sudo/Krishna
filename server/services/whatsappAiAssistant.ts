@@ -19,10 +19,9 @@ const KEY_3 = (process.env.AUTONOMOUS_KEY_3 || process.env.AUTONOMOUS_AGENT_STRA
 const KEY_POOL = [KEY_1, KEY_2, KEY_3].filter(k => k && k.length > 10 && k !== 'Secret value');
 
 const CANDIDATE_MODELS = [
-  'gemini-3.8-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro'
+  'gemini-3.6-flash',
+  'gemini-3.7-flash',
+  'gemini-3.8-flash'
 ];
 
 function extractPhoneNumber(text: string): string | null {

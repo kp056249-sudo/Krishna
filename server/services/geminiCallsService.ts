@@ -45,8 +45,8 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: 
 }
 
 export const GEMINI_CALLS_MODELS = {
-  MODEL_1: process.env.GEMINI_CALLS_MODEL_1 || 'gemini-2.5-flash',
-  MODEL_2: process.env.GEMINI_CALLS_MODEL_2 || 'gemini-2.0-flash',
+  MODEL_1: process.env.GEMINI_CALLS_MODEL_1 || 'gemini-3.6-flash',
+  MODEL_2: process.env.GEMINI_CALLS_MODEL_2 || 'gemini-3.7-flash',
 };
 
 function getModelName(modelArg?: string): string {
@@ -313,8 +313,8 @@ export async function processLiveCallVoiceCommand(
   const preferredKeySlot = isKey2Model ? 2 : 1;
 
   const candidateModels = isKey2Model
-    ? [GEMINI_CALLS_MODELS.MODEL_2, GEMINI_CALLS_MODELS.MODEL_1, 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-1.5-flash']
-    : [GEMINI_CALLS_MODELS.MODEL_1, GEMINI_CALLS_MODELS.MODEL_2, 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    ? [GEMINI_CALLS_MODELS.MODEL_2, GEMINI_CALLS_MODELS.MODEL_1, 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash']
+    : [GEMINI_CALLS_MODELS.MODEL_1, GEMINI_CALLS_MODELS.MODEL_2, 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash'];
 
   // Synthesize spoken voice response with Gemini
   const prompt = `You are DataNexus Gemini Live Calls Autonomous Engine. You are in an ACTIVE LIVE VOICE CALL with the store owner/founder.
