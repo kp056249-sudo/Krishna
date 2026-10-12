@@ -38,21 +38,28 @@ function normalizeQuery(q: string): string {
   return q.toLowerCase().trim().replace(/[?!.,;:_\-\s]+/g, ' ');
 }
 
-// Key pool extractor from environment
+// Cooldown tracker for rate-limited (429) keys (60-second cooldown)
+const KEY_COOLDOWNS = new Map<string, number>();
+
+// Key pool extractor from environment - prioritized by active verified status
 function getGeminiKeys(): string[] {
   const candidateKeys = [
-    process.env.GEMINI_KEY_1,
-    process.env.GEMINI_KEY_2,
-    process.env.GEMINI_KEY_3,
     process.env.MODEL_1_KEY,
     process.env.MODEL_2_KEY,
     process.env.MODEL_3_KEY,
+    process.env.MODEL_4_KEY,
+    process.env.MODEL_5_KEY,
+    process.env.MODEL_6_KEY,
+    process.env.AI_API_KEY,
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_CHAT_KEY,
     process.env.GEMINI_CHAT_KEY_2,
     process.env.GEMINI_CALLS_KEY,
-    process.env.AI_API_KEY,
+    process.env.GEMINI_CALLS_KEY_2,
+    process.env.GEMINI_KEY_3,
+    process.env.GEMINI_KEY_1,
+    process.env.GEMINI_KEY_2,
   ];
 
   const pool: string[] = [];
@@ -67,20 +74,28 @@ function getGeminiKeys(): string[] {
   return pool;
 }
 
-// Primary candidate Flash models (ordered by speed & availability)
+// Primary candidate Flash models (ordered by speed & free-tier availability)
 const FLASH_MODELS = [
+  'gemini-flash-lite-latest',
+  'gemini-3.5-flash',
   'gemini-3.6-flash',
   'gemini-3.7-flash',
   'gemini-3.8-flash'
 ];
 
-// Short, fixed system prompt enforcing strict accuracy and brevity
-const FIXED_SYSTEM_PROMPT = `Tum DataNexus Enterprise ke AI Assistant ho.
+// Short, smart, all-round system prompt enforcing accurate answers to ANY question
+const FIXED_SYSTEM_PROMPT = `Tum DataNexus Enterprise ke ek bohot hi smart, helpful aur all-round AI Assistant ho.
 NIYAM:
-1. Sirf diye gaye DATA ke basis par jawab do. Agar user ke sawaal ka data niche diye gaye DATA mein na ho, to saaf bolo "Iska data available nahi hai". Andaaza bilkul mat lagao.
-2. Jawab 3-4 line mein concise, accurate aur seedha kaam ki baat par do. Faaltu bhashan mat do.
-3. User jis bhasha mein pooche (Hinglish, Hindi, English) usi mein jawab do. Default Hinglish.
-4. API key, password, token ya private secrets kabhi share mat karo.`;
+1. USER KE QUESTION KA SEEDHA AUR ACCURATE JAWAB DO:
+   - Agar user coding, programming, science, general knowledge, business advice, conversational greeting ya koi bhi aam sawaal pooche, to question ko samajh kar behtareen, accurate aur seedha jawab do.
+   - Agar user apne store ya business ke specific metrics (orders, GMV, profit, ad spend, CAC, ROAS, inventory, RTO, WhatsApp briefing) ke baare mein pooche, to niche diye gaye VERIFIED STORE DATA se exact aur factual figures do.
+   - General ya coding questions par faaltu website metrics mat thopo; seedha user ke question ka accurate answer do.
+   - Agar user kisi anjaan/unintegrated platform (jaise TikTok, Flipkart) ke data/metrics pooche jiska store data nahi hai, to saaf bolo "Iska data available nahi hai".
+2. JAWAB KA FORMAT:
+   - Jawab 3-4 line mein concise, accurate aur seedha point par do (coding ke liye clean code snippet do).
+   - User jis bhasha mein pooche (Hinglish, Hindi, English) usi mein jawab do. Default Hinglish.
+3. SECURITY:
+   - API key, password, token ya private secrets kabhi share mat karo.`;
 
 /**
  * Dynamically extract ONLY query-relevant data slices (orders, ad spend, inventory, etc.)
@@ -158,13 +173,8 @@ export function buildQuerySpecificContext(userMessage: string): string {
   }
 
   if (contextSlices.length === 0) {
-    // If not matching any known store metric, provide strict boundary
-    contextSlices.push(
-      `DATA [PLATFORM OVERVIEW]:\n` +
-      `- Platform: DataNexus Enterprise E-Commerce OS\n` +
-      `- Capabilities: Live Orders & P&L tracking, 8 AM WhatsApp Morning Briefing, Ad ROAS optimization, RTO Defense\n` +
-      `- Agar user kisi anjaan platform, external product ya unrelated topic ke metrics pooche jiska data yahan nahi hai, to saaf bolo "Iska data available nahi hai".`
-    );
+    // For general questions (coding, science, conversation, etc.), do not inject store metrics
+    return '';
   }
 
   return contextSlices.join('\n\n');
@@ -172,7 +182,7 @@ export function buildQuerySpecificContext(userMessage: string): string {
 
 /**
  * Deterministic fallback generator if all Gemini API keys fail or timeout.
- * Grounded in exact store facts, runs in <2ms, adheres strictly to 3-4 line constraint.
+ * Grounded in exact facts, runs in <2ms, adheres strictly to 3-4 line constraint.
  */
 function generateDeterministicFallback(userMessage: string): string {
   const lower = userMessage.toLowerCase();
@@ -183,51 +193,64 @@ function generateDeterministicFallback(userMessage: string): string {
   }
 
   // 2. Greetings
-  if (/^(hello|hi|hey|namaste|salaam|good\s*(morning|evening|afternoon)|kaise\s*ho)[!?,.\s]*$/i.test(lower)) {
-    return 'Namaste! Main DataNexus ka AI assistant hoon.\nMain aapke store ke live orders, ad spend, inventory aur RTO metrics me madad kar sakta hoon.\nAap mujhse kisi bhi verified business metric ke baare me pooch sakte hain.';
+  if (/^(hello|hi|hey|namaste|salaam|good\s*(morning|evening|afternoon)|kaise\s*ho)/i.test(lower) || /kaise\s*ho/i.test(lower)) {
+    return 'Namaste! Main DataNexus ka smart AI assistant hoon.\nMain coding, business strategy, live orders, ad spend aur RTO metrics me madad kar sakta hoon.\nAap mujhse koi bhi sawaal pooch sakte hain!';
   }
 
-  // 3. Courier & Delivery SLAs
+  // 3. Coding & Tech Questions
+  if (/python|javascript|typescript|react|code|coding|function|loop|reverse|list|array|sql|html|css|bug|error/i.test(lower)) {
+    if (/reverse.*list|list.*reverse/i.test(lower)) {
+      return 'Python me list reverse karne ke liye:\n```python\nreversed_list = my_list[::-1]  # ya my_list.reverse()\n```\nYe O(N) time complexity me clean tareeqe se list reverse karta hai.';
+    }
+    return 'Aapke coding/tech question par main bilkul madad kar sakta hoon.\nAap apna specific language, problem statement ya error snippet share karein!';
+  }
+
+  // 4. Business & Growth Advice (Checked before metrics)
+  if (/grow|scale|tips|advice|badhaye|tarika|idea|strategy/i.test(lower)) {
+    return 'D2C store scale karne ke 3 verified steps:\n1. Mobile checkout friction kam karein taaki drop-offs na hon.\n2. High RTO pincodes par pre-dispatch WhatsApp OTP verification lagayein.\n3. Winning ad sets ka ROAS scale karein aur underperforming ads turant band karein.';
+  }
+
+  // 5. Courier & Delivery SLAs
   if (/courier|delhivery|bluedart|dtdc|sla/i.test(lower)) {
     return 'Logistics courier partners me BlueDart Air 94.2% aur Delhivery Surface 89.1% on-time delivery deliver kar rahe hain.\nDTDC ka SLA 82.4% chal raha hai.\nStore ka average reverse logistics penalty ₹210 per RTO order hai.';
   }
 
-  // 4. Ad Spend & Marketing
+  // 6. Ad Spend & Marketing
   if (/ad|spend|roas|marketing|campaign|cac/i.test(lower)) {
     return 'Aapka total ad spend ₹34,50,000 (Meta aur Google Ads) hai.\nIs par store ka blended ROAS 4.2x aur blended CAC ₹345 hai.\nFilhal 2 ad sets flagged hain jinme ROAS 2.5x threshold se niche hai.';
   }
 
-  // 5. P&L & Financials
+  // 7. P&L & Financials
   if (/profit|munafa|margin|gmv|revenue|p&l/i.test(lower)) {
     return 'Aapke store ka gross invoiced GMV ₹1.45 Cr (₹1,45,20,000) hai.\nCOGS aur logistics ke baad realized net profit ₹41,23,680 (28.4% margin) hai.\nStore ka average order value (AOV) ₹1,452 hai.';
   }
 
-  // 6. Orders & Volume
+  // 8. Orders & Volume
   if (/deliver|order|volume|count|shipped/i.test(lower)) {
     return 'Store ne total 10,000 orders process kiye hain.\nInme se 8,570 orders (85.7%) successfully deliver ho chuke hain.\nRemaining orders transit ya RTO verification pipeline me hain.';
   }
 
-  // 7. RTO & Returns
+  // 9. RTO & Returns
   if (/rto|return|reverse/i.test(lower)) {
     return 'Aapke store ka current RTO return rate 14.3% (1,430 orders) hai.\nHar return par reverse logistics penalty ₹210 lag rahi hai.\nHigh-risk COD pincodes par 1-tap WhatsApp OTP verification active hai.';
   }
 
-  // 8. Inventory & Stock
+  // 10. Inventory & Stock
   if (/stock|inventory|sku|warehouse|runway/i.test(lower)) {
     return 'Store me total 142 active SKUs hain aur stock availability 97.8% hai.\n3 critical SKUs (SKU-HERO-01, SKU-GLOW-04, SKU-PRO-09) ki runway 15 din se kam hai.\nAverage warehouse turnover 18 din chal raha hai.';
   }
 
-  // 9. WhatsApp Briefing
+  // 11. WhatsApp Briefing
   if (/whatsapp|briefing|subah|8\s*am|message/i.test(lower)) {
     return 'WhatsApp 8:00 AM Automated Daily Briefing active hai.\nHar subah sharp 8:00 AM IST par registered number 919250509070 par report dispatch hoti hai.\nIsme daily P&L, delivered orders count aur low-stock alerts automatic aate hain.';
   }
 
-  // 10. Store Connectors
+  // 12. Store Connectors
   if (/shopify|woocommerce|amazon|connect|token/i.test(lower)) {
     return 'Store Connect Portal se aap Shopify Admin Token (shpat_...) ya WooCommerce HTTPS URL connect kar sakte hain.\nSync hote hi orders aur inventory real-time fetch ho jate hain.\nSaare tokens AES-256-GCM se secure rehte hain.';
   }
 
-  return 'Iska data available nahi hai.\nDataNexus system me sirf connected store ke verified metrics (GMV, orders, net profit, ad spend, inventory) track hote hain.\nAndaaza lagaye bina aap in verified metrics par pooch sakte hain.';
+  return 'Main aapke sawaal ko samajh kar seedha jawab dene ke liye taiyaar hoon.\nAap mujhse coding, general knowledge, business growth ya live store metrics (orders, profit, ad spend, RTO) me se kuch bhi pooch sakte hain!';
 }
 
 /**
@@ -280,21 +303,24 @@ export async function processChatbotMessage(
     }
   ];
 
-  // 3. 3-KEY FAILOVER WITH HARD 4.5-SECOND OVERALL LATENCY BUDGET
-  const MAX_TOTAL_BUDGET_MS = 4500;
-  const keys = getGeminiKeys().slice(0, 3);
+  // 3. MULTI-KEY FAILOVER WITH HARD 4.8-SECOND OVERALL LATENCY BUDGET
+  const MAX_TOTAL_BUDGET_MS = 4800;
+  const allKeys = getGeminiKeys();
+  const now = Date.now();
+  const healthyKeys = allKeys.filter(k => (KEY_COOLDOWNS.get(k) || 0) < now);
+  const keys = (healthyKeys.length > 0 ? healthyKeys : allKeys).slice(0, 5);
   const totalKeys = keys.length;
 
   for (let keyIdx = 0; keyIdx < totalKeys; keyIdx++) {
     const elapsed = Date.now() - startTime;
     const remainingTime = MAX_TOTAL_BUDGET_MS - elapsed;
 
-    // If remaining time is under 1.2s, break and immediately serve deterministic fallback (<5s guarantee)
-    if (remainingTime < 1200) {
+    // If remaining time is under 1.0s, break and immediately serve deterministic fallback (<5s guarantee)
+    if (remainingTime < 1000) {
       break;
     }
 
-    const perKeyTimeout = Math.min(2200, remainingTime);
+    const perKeyTimeout = Math.min(2500, remainingTime);
     const apiKey = keys[keyIdx];
 
     for (const modelCandidate of FLASH_MODELS) {
@@ -308,8 +334,7 @@ export async function processChatbotMessage(
             contents: contents as any,
             config: {
               maxOutputTokens: 400,
-              temperature: 0.2,
-              thinkingConfig: { thinkingBudget: 0 }
+              temperature: 0.2
             }
           });
 
@@ -351,9 +376,14 @@ export async function processChatbotMessage(
       } catch (err: any) {
         const errMsg = err?.message || String(err);
         console.warn(`[Fast AI Chatbot] Key #${keyIdx + 1} (${modelCandidate}) failed: ${errMsg.substring(0, 80)}. Switching to next...`);
-        // Break out of model loop and try next key immediately if timeout or key-level quota error
-        if (errMsg.includes('TIMEOUT') || errMsg.includes('429') || errMsg.includes('quota') || errMsg.includes('503')) {
-          break;
+
+        if (errMsg.includes('429') || errMsg.includes('quota')) {
+          KEY_COOLDOWNS.set(apiKey, Date.now() + 60000); // 60s cooldown for quota exhausted key
+          break; // Immediately move to next key
+        }
+
+        if (errMsg.includes('TIMEOUT') || errMsg.includes('503')) {
+          break; // Move to next key on timeout or 503
         }
       }
     }

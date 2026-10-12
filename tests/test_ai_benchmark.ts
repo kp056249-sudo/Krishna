@@ -73,6 +73,18 @@ const SAMPLE_QUESTIONS = [
     category: 'Cache Verification (Repeat Question 1)',
     question: 'Aapke store ka total GMV aur realized profit margin kitna hai?',
     expectedKeywords: ['₹1.45']
+  },
+  {
+    id: 11,
+    category: 'General Coding & Tech',
+    question: 'Write Python code to reverse a list in 2 lines',
+    expectedKeywords: ['reverse', 'list']
+  },
+  {
+    id: 12,
+    category: 'General Science & Knowledge',
+    question: 'What is photosynthesis? Explain in 2 lines',
+    expectedKeywords: ['plant', 'light', 'energy', 'sunlight', 'process']
   }
 ];
 

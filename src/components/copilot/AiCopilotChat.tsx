@@ -245,12 +245,20 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
     if (!commandInput.trim() || isExecuting) return;
 
     const query = commandInput.trim();
+    const lower = query.toLowerCase();
     setCommandInput('');
 
-    if (query.toLowerCase().includes('sql') || query.toLowerCase().includes('select')) {
+    if (lower.includes('sql') || lower.includes('select') || lower.includes('table') || lower.includes('query')) {
       await handleRunHighLtvSql(query);
+    } else if (lower.includes('rto') || lower.includes('return') || lower.includes('courier') || lower.includes('cod')) {
+      await handleRunAuditRto();
+    } else if (lower.includes('profit') || lower.includes('crore') || lower.includes('margin') || lower.includes('cogs')) {
+      await handleRunProfitPlan();
+    } else if (lower.includes('roas') || lower.includes('ad') || lower.includes('spend') || lower.includes('campaign')) {
+      await handleRunRoasOptimization();
     } else {
-      await handleRunHighLtvSql(query);
+      // General question / strategic instruction: dispatch to Strategy Synthesizer
+      await handleRunTriAgent('strategy_synthesizer', query);
     }
   };
 
