@@ -345,15 +345,15 @@ export default function App() {
   };
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#f8fafc] text-slate-900 flex flex-col font-sans relative overflow-hidden">
+    <div className="h-[100dvh] max-h-[100dvh] w-full bg-[#070b14] text-slate-100 flex flex-col font-sans relative overflow-hidden">
       {/* Dynamic Themed Ambient Background Glows */}
       <div
-        className="fixed top-0 left-1/4 w-[750px] h-[380px] rounded-full blur-[140px] pointer-events-none opacity-20 -z-10 transition-all duration-700"
-        style={{ background: 'var(--theme-primary)' }}
+        className="fixed -top-24 left-1/4 w-[750px] h-[380px] rounded-full blur-[160px] pointer-events-none opacity-25 -z-10 transition-all duration-700"
+        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.45) 0%, rgba(6,182,212,0.15) 60%, transparent 100%)' }}
       />
       <div
-        className="fixed bottom-10 right-10 w-[600px] h-[350px] rounded-full blur-[150px] pointer-events-none opacity-15 -z-10 transition-all duration-700"
-        style={{ background: 'var(--theme-primary)' }}
+        className="fixed bottom-0 right-10 w-[600px] h-[350px] rounded-full blur-[170px] pointer-events-none opacity-20 -z-10 transition-all duration-700"
+        style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.35) 0%, rgba(99,102,241,0.15) 60%, transparent 100%)' }}
       />
 
       {/* Top Navigation */}
@@ -385,7 +385,7 @@ export default function App() {
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="lg:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
+          className="lg:hidden fixed inset-x-0 bottom-0 top-14 z-30 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200 cursor-pointer"
           aria-label="Close Navigation Overlay"
         />
       )}
@@ -439,10 +439,11 @@ export default function App() {
           onClick={() => setActiveTab('real_ai_page')}
           aria-label="Open AI Copilot"
           title="Open AI Copilot & Voice"
-          className="fixed bottom-16 sm:bottom-4 right-4 z-40 flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-[#233876] hover:bg-[#1a2b5c] text-white font-bold text-xs shadow-xl border border-white/20 backdrop-blur-md transition-all cursor-pointer group active:scale-95"
+          className="fixed bottom-16 sm:bottom-5 right-5 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-bold text-xs shadow-xl shadow-indigo-500/25 border border-indigo-400/30 backdrop-blur-md transition-all cursor-pointer group active:scale-95 hover:scale-105"
         >
-          <Sparkles className="w-3.5 h-3.5 text-blue-200 group-hover:scale-110 transition-transform" />
-          <span className="hidden sm:inline font-sans">AI Copilot</span>
+          <Sparkles className="w-3.5 h-3.5 text-cyan-200 group-hover:rotate-12 transition-transform" />
+          <span className="hidden sm:inline font-sans tracking-wide">AI Copilot</span>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-300 animate-pulse"></span>
         </button>
       )}
 

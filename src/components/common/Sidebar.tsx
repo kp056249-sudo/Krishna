@@ -139,34 +139,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
       className={`
         fixed lg:static top-0 left-0 bottom-0
         h-full
-        bg-white
-        border-r border-slate-200/90
+        bg-[#0a0f1d]/95 backdrop-blur-xl
+        border-r border-slate-800/80
         z-50 lg:z-10
         transition-transform duration-300 ease-in-out
         flex flex-col
         overflow-hidden
-        ${isOpen ? 'translate-x-0 shadow-2xl shadow-slate-900/20 pointer-events-auto' : '-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto'}
+        ${isOpen ? 'translate-x-0 shadow-2xl shadow-black/60 pointer-events-auto' : '-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto'}
         w-[88vw] sm:w-80 lg:w-64 flex-shrink-0
       `}
     >
       {/* Drawer Header with Brand & Close X - Fixed header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white flex-shrink-0">
+      <div className="flex items-center justify-between p-4 border-b border-slate-800/80 bg-[#0a0f1d] flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#233876] text-white flex items-center justify-center shadow-md flex-shrink-0">
-            <ShieldCheck className="w-4 h-4" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/25 flex-shrink-0">
+            <ShieldCheck className="w-4 h-4 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-sm tracking-tight text-slate-900">KP DATANEXUS</span>
+              <span className="font-extrabold text-sm tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-400 bg-clip-text text-transparent">
+                KP DATANEXUS
+              </span>
             </div>
-            <p className="text-[10px] text-slate-500 font-medium">Enterprise E-Commerce OS</p>
+            <p className="text-[10px] text-slate-400 font-medium">Enterprise E-Commerce OS</p>
           </div>
         </div>
 
         <button
           onClick={onClose}
           aria-label="Close navigation menu"
-          className="lg:hidden p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+          className="lg:hidden p-1.5 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -189,13 +191,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => handleItemClick(item.id)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all group text-left cursor-pointer ${
                       isActive
-                        ? 'bg-[#233876] text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'
+                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-md shadow-indigo-500/25 border border-indigo-400/30'
+                        : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                     }`}
                   >
                     <Icon
                       className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                        isActive ? 'text-white' : 'text-slate-500 group-hover:text-slate-800'
+                        isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'
                       }`}
                     />
                     <div className="flex-1 flex items-center justify-between truncate">
@@ -205,7 +207,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-full ${
                             isActive
                               ? 'bg-white/20 text-white'
-                              : 'bg-slate-100 text-slate-600'
+                              : 'bg-slate-800/80 text-slate-300 border border-slate-700/60'
                           }`}
                         >
                           {item.badge}
@@ -220,20 +222,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
-      {/* Bottom Promo / AI Autopilot Card (Matches Photo Bottom Left Card) - Fixed at bottom */}
-      <div className="p-3 border-t border-slate-100 bg-white flex-shrink-0">
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#2563eb] text-white shadow-md relative overflow-hidden">
-          <div className="text-sm font-bold leading-tight">Spring Intake 2026</div>
-          <p className="text-[11px] text-blue-100 mt-1 leading-snug">
-            Autonomous AI &amp; WhatsApp 8 AM Briefing active!
+      {/* Bottom Promo / AI Autopilot Card - Fixed at bottom */}
+      <div className="p-3 border-t border-slate-800/80 bg-[#0a0f1d] flex-shrink-0">
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-cyan-950/80 border border-indigo-500/30 text-white shadow-xl relative overflow-hidden group">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold leading-tight bg-gradient-to-r from-cyan-300 to-indigo-200 bg-clip-text text-transparent flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-cyan-400 inline" />
+              <span>Autonomous AI Engine</span>
+            </div>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live"></span>
+          </div>
+          <p className="text-[11px] text-slate-300 mt-1.5 leading-snug">
+            Gemini 2.5 Flash, COD RTO defense &amp; WhatsApp 8 AM briefing active.
           </p>
           <button
             type="button"
-            onClick={() => handleItemClick('whatsapp_briefing')}
-            className="mt-3 w-full py-2 px-3 rounded-xl bg-white text-[#1e3a8a] hover:bg-blue-50 text-xs font-bold transition-all shadow-sm flex items-center justify-between cursor-pointer"
+            onClick={() => handleItemClick('real_ai_page')}
+            className="mt-3 w-full py-2 px-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-bold transition-all shadow-md flex items-center justify-between cursor-pointer"
           >
-            <span>View Briefings</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Open AI Studio</span>
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
       </div>
