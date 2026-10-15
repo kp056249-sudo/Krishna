@@ -1,4 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
+import { semanticCacheService } from './semanticCacheService.js';
 
 /**
  * DataNexus High-Performance AI Chatbot Service
@@ -8,7 +9,7 @@ import { GoogleGenAI } from '@google/genai';
  * 2. Streaming response enabled with Time-To-First-Token (TTFT) tracking
  * 3. Compact, fixed system prompt + query-intent specific context pruning
  * 4. maxOutputTokens: 400, strictly 3-4 lines response
- * 5. In-memory TTL cache (10 minutes) for identical questions
+ * 5. Semantic Vector Cache (sub-15ms) with Cosine Similarity >= 0.88
  * 6. 3 Gemini Keys Failover with 4-second timeout per key attempt
  * 7. Factual grounding: "Sirf diye gaye data ke basis par jawab do. Data na ho to bolo 'data available nahi hai'. Andaaza mat lagao."
  * 8. Strict server-side execution: API keys loaded from .env only, never exposed to client
@@ -21,6 +22,8 @@ export interface ChatbotResponse {
   cached: boolean;
   modelUsed: string;
   keyUsed: number;
+  semanticMatch?: boolean;
+  similarity?: number;
 }
 
 interface CacheItem {
@@ -271,7 +274,22 @@ export async function processChatbotMessage(
   const trimmed = userMessage.trim();
   const cacheKey = normalizeQuery(trimmed);
 
-  // 1. FAST CACHE LOOKUP (TTL: 10 Minutes)
+  // 1. FAST SEMANTIC VECTOR CACHE LOOKUP (<15ms)
+  const semanticMatch = semanticCacheService.findMatch(trimmed);
+  if (semanticMatch.hit && semanticMatch.reply) {
+    console.log(`[Fast AI Chatbot] SEMANTIC CACHE HIT (${semanticMatch.matchType}) for "${trimmed.substring(0, 35)}" -> ${semanticMatch.latencyMs}ms (Similarity: ${semanticMatch.similarity})`);
+    return {
+      reply: semanticMatch.reply,
+      responseTimeMs: semanticMatch.latencyMs,
+      cached: true,
+      modelUsed: semanticMatch.modelUsed || 'semantic-vector-cache',
+      keyUsed: 1,
+      semanticMatch: semanticMatch.matchType === 'SEMANTIC',
+      similarity: semanticMatch.similarity
+    };
+  }
+
+  // Fallback to legacy string cache
   const cached = RESPONSE_CACHE.get(cacheKey);
   if (cached && (startTime - cached.timestamp < CACHE_TTL_MS)) {
     const responseTimeMs = Date.now() - startTime;
@@ -357,13 +375,20 @@ export async function processChatbotMessage(
           const responseTimeMs = Date.now() - startTime;
           console.log(`[Fast AI Chatbot] SUCCESS via Key #${keyIdx + 1} (${modelCandidate}) in ${responseTimeMs}ms`);
 
-          // Cache valid response for 10 minutes
+          // Cache valid response in string cache and semantic vector cache
           RESPONSE_CACHE.set(cacheKey, {
             reply,
             timestamp: Date.now(),
             modelUsed: modelCandidate,
             keyUsed: keyIdx + 1
           });
+
+          semanticCacheService.set(
+            trimmed,
+            reply,
+            modelCandidate,
+            Math.max(100, Math.round(reply.length / 4))
+          );
 
           return {
             reply,
@@ -400,6 +425,13 @@ export async function processChatbotMessage(
     modelUsed: 'grounded-deterministic-engine',
     keyUsed: 0
   });
+
+  semanticCacheService.set(
+    trimmed,
+    fallbackReply,
+    'grounded-deterministic-engine',
+    Math.max(100, Math.round(fallbackReply.length / 4))
+  );
 
   return {
     reply: fallbackReply,

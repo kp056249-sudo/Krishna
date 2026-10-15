@@ -34,6 +34,8 @@ import * as geminiCallsService from './server/services/geminiCallsService.js';
 import * as rtoMLService from './server/services/rtoMLService.js';
 import * as triEngine from './server/services/autonomousTriEngine.js';
 import { processChatbotMessage } from './server/services/chatbotService.js';
+import { duckdbEngine } from './server/duckdbEngine.js';
+import { semanticCacheService } from './server/services/semanticCacheService.js';
 import {
   initTelegramBot,
   getTelegramBotStatus,
@@ -113,7 +115,9 @@ app.post('/api/chat', chatLimiter, async (req: Request, res: Response) => {
       responseTimeMs: result.responseTimeMs,
       cached: result.cached,
       modelUsed: result.modelUsed,
-      keyUsed: result.keyUsed
+      keyUsed: result.keyUsed,
+      semanticMatch: result.semanticMatch,
+      similarity: result.similarity,
     });
   } catch (err: any) {
     console.warn(`[Chat Route] Exception: ${err?.name || 'Error'}`);
@@ -974,10 +978,42 @@ app.post('/api/sql/translate', requireAuth, async (req: AuthenticatedRequest, re
 });
 
 app.post('/api/sql/run', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
-  const { query } = req.body;
+  const { query, engine } = req.body;
+  if (engine === 'duckdb') {
+    const result = await duckdbEngine.executeQuery(query);
+    if (!result.success) return res.status(400).json(result);
+    return res.json(result);
+  }
   const result = await executeReadOnlyQuery(req.user!.companyId, query);
   if (!result.success) return res.status(400).json(result);
   res.json(result);
+});
+
+// Dedicated DuckDB Columnar Analytical Endpoints
+app.post('/api/analytics/duckdb/query', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  const { query } = req.body;
+  const result = await duckdbEngine.executeQuery(query);
+  if (!result.success) return res.status(400).json(result);
+  res.json(result);
+});
+
+app.get('/api/analytics/duckdb/kpis', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const metrics = await duckdbEngine.getKpiMetrics();
+    res.json({ success: true, ...metrics });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Semantic Vector Cache Telemetry Endpoints
+app.get('/api/copilot/semantic-cache/metrics', async (_req: Request, res: Response) => {
+  res.json({ success: true, ...semanticCacheService.getMetrics() });
+});
+
+app.post('/api/copilot/semantic-cache/clear', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  semanticCacheService.clear();
+  res.json({ success: true, message: 'Semantic vector cache successfully cleared.' });
 });
 
 // -----------------------------------------------------------------------------
@@ -1636,14 +1672,42 @@ app.post('/api/webhooks/shopify', shopifyWebhookHandler);
 // -----------------------------------------------------------------------------
 app.post('/api/ai/chat', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   const { prompt, model } = req.body;
-  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_CHAT_KEY || process.env.GEMINI_CALLS_KEY;
+  if (!prompt || typeof prompt !== 'string') {
+    return res.status(400).json({ error: 'Prompt is required' });
+  }
 
+  // 1. Check Semantic Vector Cache for sub-15ms response
+  const semanticMatch = semanticCacheService.findMatch(prompt);
+  if (semanticMatch.hit && semanticMatch.reply) {
+    return res.json({
+      success: true,
+      answer: semanticMatch.reply,
+      modelUsed: semanticMatch.modelUsed || 'semantic-vector-cache',
+      keyUsed: 1,
+      responseTimeMs: semanticMatch.latencyMs,
+      cached: true,
+      semanticMatch: semanticMatch.matchType === 'SEMANTIC',
+      similarity: semanticMatch.similarity
+    });
+  }
+
+  const geminiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || process.env.GEMINI_CHAT_KEY || process.env.GEMINI_CALLS_KEY;
   if (!geminiKey) return res.status(403).json({ error: 'Gemini API key is not configured in .env' });
 
   try {
     const context = `User is a ${req.user!.role} at company ${req.user!.companyId}.`;
     const chatResult = await geminiService.generateChatResponse(prompt, context, req.user!.companyId, model);
     
+    // Store in Semantic Vector Cache for future queries
+    if (chatResult.answer) {
+      semanticCacheService.set(
+        prompt,
+        chatResult.answer,
+        chatResult.modelUsed || 'gemini-2.5-flash',
+        Math.max(100, Math.round(chatResult.answer.length / 4))
+      );
+    }
+
     res.json({
       success: true,
       answer: chatResult.answer,

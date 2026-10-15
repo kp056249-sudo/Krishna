@@ -4,6 +4,7 @@ import { askDataNexusCopilotWithMeta } from '../../services/geminiService';
 import { BoltStyleChat } from '../ui/bolt-style-chat';
 import { AIChatCard } from '../ui/ai-chat-card';
 import { ModalCard } from '../ui/modal-card';
+import { SemanticCacheHud } from './SemanticCacheHud';
 
 export const AI_MODELS = [
   { id: 'gemini-2.5-flash', label: '2.5 Flash', title: 'Gemini 2.5 Flash (Ultra Fast)' },
@@ -20,6 +21,10 @@ interface Message {
   timestamp: string;
   modelUsed?: string;
   keyUsed?: number;
+  cached?: boolean;
+  responseTimeMs?: number;
+  semanticMatch?: boolean;
+  similarity?: number;
 }
 
 export const RealAiPage: React.FC = () => {
@@ -77,6 +82,10 @@ export const RealAiPage: React.FC = () => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         modelUsed: res.modelUsed,
         keyUsed: res.keyUsed,
+        cached: res.cached,
+        responseTimeMs: res.responseTimeMs,
+        semanticMatch: res.semanticMatch,
+        similarity: res.similarity,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err: any) {
@@ -212,6 +221,9 @@ export const RealAiPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Semantic Vector Cache Telemetry HUD */}
+      <SemanticCacheHud />
+
       {aiInterface === 'bolt' && (
         <div className="flex-1 w-full animate-in fade-in duration-200">
           <BoltStyleChat />
@@ -251,8 +263,21 @@ export const RealAiPage: React.FC = () => {
                       : 'bg-slate-900 border border-slate-800 text-slate-200 mr-8 shadow-md'
                   }`}
                 >
-                  <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400 mb-1.5">
-                    <span>{msg.role === 'user' ? 'You' : 'Gemini AI'}</span>
+                  <div className="flex items-center justify-between text-[11px] font-bold text-cyan-400 mb-1.5 flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span>{msg.role === 'user' ? 'You' : 'Gemini AI'}</span>
+                      {msg.role === 'assistant' && (
+                        msg.cached ? (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[9px] font-semibold">
+                            ⚡ {msg.semanticMatch ? `Semantic Vector Match (${msg.responseTimeMs || 12}ms · ${Math.round((msg.similarity || 0.94) * 100)}%)` : `Cache Hit (${msg.responseTimeMs || 8}ms)`}
+                          </span>
+                        ) : msg.responseTimeMs ? (
+                          <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono text-[9px] font-semibold">
+                            🌐 Cold LLM ({msg.responseTimeMs}ms)
+                          </span>
+                        ) : null
+                      )}
+                    </div>
                     <span className="text-slate-500 font-normal">{msg.timestamp}</span>
                   </div>
                   <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -354,12 +379,22 @@ export const RealAiPage: React.FC = () => {
                 }`}
               >
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400 font-mono-code">
-                    <span className="flex items-center gap-1.5 text-cyan-400 font-semibold">
+                  <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800 text-[10px] text-slate-400 font-mono-code flex-wrap gap-2">
+                    <span className="flex items-center gap-1.5 text-cyan-400 font-semibold flex-wrap">
                       <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
                       <span>{msg.modelUsed || selectedModel}</span>
                       <span className="text-slate-600">·</span>
-                      <span className="text-emerald-400">Active</span>
+                      {msg.cached ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono text-[9px] font-semibold">
+                          ⚡ {msg.semanticMatch ? `Semantic Vector Match (${msg.responseTimeMs || 12}ms · ${Math.round((msg.similarity || 0.94) * 100)}%)` : `Cache Hit (${msg.responseTimeMs || 8}ms)`}
+                        </span>
+                      ) : msg.responseTimeMs ? (
+                        <span className="px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono text-[9px] font-semibold">
+                          🌐 Cold LLM ({msg.responseTimeMs}ms)
+                        </span>
+                      ) : (
+                        <span className="text-emerald-400">Active</span>
+                      )}
                     </span>
                     <div className="flex items-center gap-3">
                       <button

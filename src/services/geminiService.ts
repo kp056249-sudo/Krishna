@@ -22,12 +22,24 @@ export async function askDataNexusCopilot(userPrompt: string, model?: string): P
 export async function askDataNexusCopilotWithMeta(
   userPrompt: string,
   model?: string
-): Promise<{ answer: string; modelUsed: string; keyUsed: number }> {
+): Promise<{
+  answer: string;
+  modelUsed: string;
+  keyUsed: number;
+  cached?: boolean;
+  responseTimeMs?: number;
+  semanticMatch?: boolean;
+  similarity?: number;
+}> {
   const res = await api.post('/api/ai/chat', { prompt: userPrompt, model });
   return {
     answer: res.answer || (res.error ? `⚠️ ${res.error}` : "I don't have that data in your database yet."),
-    modelUsed: res.modelUsed || model || 'gemini-3.8-flash',
+    modelUsed: res.modelUsed || model || 'gemini-2.5-flash',
     keyUsed: res.keyUsed || 1,
+    cached: res.cached,
+    responseTimeMs: res.responseTimeMs,
+    semanticMatch: res.semanticMatch,
+    similarity: res.similarity,
   };
 }
 
