@@ -670,8 +670,8 @@ NIYAM:
 
   const allKeys = getAllGeminiKeys();
   const primaryKeys = allKeys.slice(0, 5);
-  const safeRequestedModel = modelRequested && !modelRequested.includes('2.5') && !modelRequested.includes('2.0') && !modelRequested.includes('1.5')
-    ? modelRequested
+  const safeRequestedModel = selectedModel && !selectedModel.includes('2.5') && !selectedModel.includes('2.0') && !selectedModel.includes('1.5')
+    ? selectedModel
     : 'gemini-flash-lite-latest';
 
   const candidateModels = [

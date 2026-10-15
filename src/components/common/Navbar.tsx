@@ -238,12 +238,26 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="flex items-center gap-2.5 p-1 pl-1.5 pr-2.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:bg-slate-800 transition-colors cursor-pointer active:scale-95 shadow-xs touch-manipulation"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-500 text-white font-bold flex items-center justify-center text-xs shadow-md ring-2 ring-indigo-500/30">
-                {user?.email ? user.email.slice(0, 2).toUpperCase() : 'KP'}
+              <div className="relative flex-shrink-0">
+                <img
+                  src="/krishna-pandey.jpg"
+                  alt="Krishna Pandey"
+                  className="w-8 h-8 rounded-full object-cover object-top ring-2 ring-cyan-500/50 shadow-md"
+                  onError={(e) => {
+                    const target = e.target as HTMLElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="hidden w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-500 text-white font-bold items-center justify-center text-xs shadow-md ring-2 ring-indigo-500/30">
+                  KP
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full" />
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-slate-100 leading-none">{user?.name || 'Krishna Pandey'}</p>
-                <p className="text-[10px] text-slate-400 font-medium leading-none mt-1">Administrator</p>
+                <p className="text-xs font-bold text-slate-100 leading-none">Krishna Pandey</p>
+                <p className="text-[10px] text-cyan-400 font-semibold leading-none mt-1">Creator &amp; Architect</p>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
             </button>
@@ -251,8 +265,42 @@ export const Navbar: React.FC<NavbarProps> = ({
             {showUserMenu && (
               <div 
                 onClick={(e) => e.stopPropagation()}
-                className="absolute right-0 top-full mt-2 w-72 max-w-[calc(100vw-1rem)] bg-[#0f172a] border border-slate-800 rounded-2xl shadow-2xl z-50 p-2 text-xs animate-in fade-in zoom-in-95 duration-150"
+                className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-1rem)] bg-[#0f172a] border border-slate-800 rounded-2xl shadow-2xl z-50 p-2.5 text-xs animate-in fade-in zoom-in-95 duration-150"
               >
+                {/* Creator & Architect Spotlight Header Card */}
+                <div className="p-3 border border-indigo-500/30 rounded-xl bg-gradient-to-br from-indigo-950/80 via-slate-900 to-cyan-950/70 mb-2">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/krishna-pandey.jpg"
+                      alt="Krishna Pandey"
+                      className="w-12 h-14 rounded-xl object-cover object-top ring-2 ring-cyan-400/60 shadow-lg flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="font-extrabold text-white text-xs truncate">Krishna Pandey</p>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                          Creator
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-300 font-medium mt-0.5">Project Architect &amp; Lead AI Engineer</p>
+                      <p className="text-[9px] text-slate-400 mt-0.5 font-mono">admin@krishna.com</p>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> ₹1 Cr+ CTC Portfolio
+                    </span>
+                    <a
+                      href="https://github.com/kp056249-sudo/Krishna"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-cyan-400 hover:underline font-semibold"
+                    >
+                      GitHub @kp056249-sudo
+                    </a>
+                  </div>
+                </div>
+
                 <div className="px-3 py-2 border-b border-slate-800/80 mb-1">
                   <p className="font-bold text-slate-100">{company?.name || 'Krishna Enterprise Workspace'}</p>
                   <p className="text-[11px] text-slate-400">{user?.email || 'admin@datanexus.io'}</p>

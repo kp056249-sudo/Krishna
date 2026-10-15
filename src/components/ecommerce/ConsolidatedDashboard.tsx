@@ -240,6 +240,76 @@ export const ConsolidatedDashboard: React.FC<ConsolidatedDashboardProps> = ({
         </div>
       )}
 
+      {/* 1.5. FOUNDER & LEAD ARCHITECT SPOTLIGHT BANNER */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#0c1322] via-[#0f172a] to-[#131d36] border border-cyan-500/30 p-5 sm:p-6 shadow-2xl">
+        {/* Glowing backdrop elements */}
+        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-10 -bottom-10 w-48 h-48 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5">
+          {/* Left: Founder Photo + Identity */}
+          <div className="flex items-center gap-4 sm:gap-5 w-full md:w-auto">
+            <div className="relative flex-shrink-0">
+              <img
+                src="/krishna-pandey.jpg"
+                alt="Krishna Pandey"
+                className="w-16 h-20 sm:w-20 sm:h-24 rounded-2xl object-cover object-top ring-2 ring-cyan-400 shadow-xl shadow-cyan-500/20"
+                onError={(e) => {
+                  const target = e.target as HTMLElement;
+                  target.style.display = 'none';
+                }}
+              />
+              <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-full bg-emerald-500 text-[9px] font-black text-slate-950 uppercase tracking-wider shadow">
+                FOUNDER
+              </span>
+            </div>
+
+            <div className="space-y-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                  Krishna Pandey
+                </h2>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold">
+                  Lead Systems Architect &amp; AI Engineer
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 font-medium">
+                Sole Architect &amp; Creator of KP DataNexus Enterprise OS
+              </p>
+              <p className="text-[11px] text-slate-400 leading-relaxed max-w-xl">
+                Engineered from the ground up targeting senior ₹1 Crore+ CTC standards with DuckDB Columnar OLAP, 128-d Vector Semantic Caching, Exact Kernel SHAP attribution, and ReAct Multi-Agent Swarms.
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Technical Pillars & Quick Actions */}
+          <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row items-start sm:items-center gap-2.5 w-full md:w-auto flex-shrink-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700/80 text-slate-200 font-mono">
+                ⚡ DuckDB &lt;4ms
+              </span>
+              <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700/80 text-cyan-300 font-mono">
+                🧠 Kernel SHAP
+              </span>
+              <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700/80 text-emerald-300 font-mono">
+                🤖 ReAct Swarm
+              </span>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <a
+                href="https://github.com/kp056249-sudo/Krishna"
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <span>GitHub @kp056249-sudo</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-cyan-400" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 2. FOUR KPI CARDS (Luxury Cybernetic Cards: Light Icon Box, Label, Value, Green Trend) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Gross GMV */}

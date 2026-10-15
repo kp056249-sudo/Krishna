@@ -99,6 +99,39 @@ export const CompanyProfileView: React.FC = () => {
         </div>
       </div>
 
+      {/* Founder & Lead Architect Showcase Card */}
+      <div className="p-6 rounded-2xl bg-gradient-to-r from-[#0c1322] via-[#0f172a] to-[#131d36] border border-cyan-500/30 shadow-xl flex flex-col sm:flex-row items-center gap-5">
+        <img
+          src="/krishna-pandey.jpg"
+          alt="Krishna Pandey"
+          className="w-20 h-26 rounded-2xl object-cover object-top ring-2 ring-cyan-400 shadow-xl shadow-cyan-500/20 flex-shrink-0"
+        />
+        <div className="space-y-1.5 text-center sm:text-left min-w-0">
+          <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+            <h2 className="text-xl font-black text-white">Krishna Pandey</h2>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 font-bold">
+              Founder &amp; Project Creator
+            </span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-bold">
+              Lead AI Architect
+            </span>
+          </div>
+          <p className="text-xs text-slate-300">
+            Sole Creator &amp; Systems Engineer behind KP DataNexus Enterprise OS.
+          </p>
+          <p className="text-[11px] text-slate-400 max-w-xl leading-relaxed">
+            Engineered the full-stack architecture combining in-memory DuckDB columnar analytics, 128-d dense vector semantic caching, L2 Logistic Regression with exact Kernel SHAP, and LangGraph/ReAct multi-agent swarms.
+          </p>
+          <div className="pt-1 flex items-center justify-center sm:justify-start gap-3 text-xs font-mono">
+            <span className="text-slate-400">admin@krishna.com</span>
+            <span className="text-slate-600">·</span>
+            <a href="https://github.com/kp056249-sudo/Krishna" target="_blank" rel="noreferrer" className="text-cyan-400 hover:underline">
+              GitHub: @kp056249-sudo
+            </a>
+          </div>
+        </div>
+      </div>
+
       {notification && (
         <div className="p-3 bg-emerald-950/90 border border-emerald-500/50 rounded-xl text-xs text-emerald-300 flex items-center justify-between shadow-lg">
           <div className="flex items-center gap-2">

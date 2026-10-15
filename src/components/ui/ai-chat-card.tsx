@@ -35,8 +35,8 @@ const DEFAULT_PROMPTS = [
 export function AIChatCard({
   title = "New Chat",
   subtitle = "How can I help you today?",
-  greeting = "Morning, Arihant!",
-  prompt = "What are we working on today? Press send to start a new conversation",
+  greeting = "Welcome back, Krishna!",
+  prompt = "What would you like to analyze or solve today? Press send to start.",
   prompts = DEFAULT_PROMPTS,
   autoType = true,
   placeholder = "Ask anything…",
@@ -149,6 +149,16 @@ export function AIChatCard({
               ref={textareaRef}
               value={userMessage}
               onChange={(event) => setUserMessage(event.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  if (userMessage.trim()) {
+                    onSend?.(userMessage.trim());
+                    setUserMessage("");
+                    setUserActive(false);
+                  }
+                }
+              }}
               placeholder={placeholder}
               rows={2}
               className="w-full resize-none bg-transparent text-sm leading-5 text-white outline-none placeholder:text-slate-500 font-sans"
@@ -188,7 +198,14 @@ export function AIChatCard({
             </motion.button>
             <motion.button
               type="button"
-              onClick={() => onSend?.(message)}
+              onClick={() => {
+                const textToSend = userActive ? userMessage : (message || userMessage);
+                if (textToSend && textToSend.trim()) {
+                  onSend?.(textToSend.trim());
+                  setUserMessage("");
+                  setUserActive(false);
+                }
+              }}
               whileHover={{
                 scale: 1.08,
                 transition: { type: "spring", bounce: 0.5, duration: 0.4 },

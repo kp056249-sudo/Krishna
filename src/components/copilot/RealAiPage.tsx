@@ -4,7 +4,6 @@ import { askDataNexusCopilotWithMeta } from '../../services/geminiService';
 import { BoltStyleChat } from '../ui/bolt-style-chat';
 import { AIChatCard } from '../ui/ai-chat-card';
 import { ModalCard } from '../ui/modal-card';
-import { SemanticCacheHud } from './SemanticCacheHud';
 
 export const AI_MODELS = [
   { id: 'gemini-flash-lite-latest', label: 'Flash Lite', title: 'Gemini Flash Lite (Ultra Fast ~1.5s)' },
@@ -221,9 +220,6 @@ export const RealAiPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Semantic Vector Cache Telemetry HUD */}
-      <SemanticCacheHud />
-
       {aiInterface === 'bolt' && (
         <div className="flex-1 w-full animate-in fade-in duration-200">
           <BoltStyleChat />
@@ -241,6 +237,8 @@ export const RealAiPage: React.FC = () => {
           <AIChatCard
             title="DataNexus Real AI"
             subtitle="Ask anything about orders, COD, profit, or code"
+            greeting={getGreeting()}
+            prompt="What are we working on today? Type your query below."
             onSend={(msg) => handleSend(msg)}
           />
 

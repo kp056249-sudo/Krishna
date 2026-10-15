@@ -222,9 +222,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ))}
       </div>
 
+      {/* Creator & Architect Spotlight Tile */}
+      <div className="px-3 pt-2 pb-1 border-t border-slate-800/80 bg-[#0a0f1d] flex-shrink-0">
+        <div className="p-2.5 rounded-xl bg-gradient-to-r from-slate-900 to-indigo-950/60 border border-slate-800 flex items-center gap-2.5 shadow-sm">
+          <div className="relative flex-shrink-0">
+            <img
+              src="/krishna-pandey.jpg"
+              alt="Krishna Pandey"
+              className="w-9 h-9 rounded-full object-cover object-top ring-2 ring-cyan-500/50 shadow-md"
+              onError={(e) => {
+                const target = e.target as HTMLElement;
+                target.style.display = 'none';
+              }}
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 ring-1 ring-slate-950" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <p className="text-xs font-bold text-white truncate">Krishna Pandey</p>
+              <span className="text-[8px] px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">PRO</span>
+            </div>
+            <p className="text-[10px] text-cyan-400 font-medium truncate">Project Creator &amp; Architect</p>
+          </div>
+        </div>
+      </div>
+
       {/* Bottom Promo / AI Autopilot Card - Fixed at bottom */}
-      <div className="p-3 border-t border-slate-800/80 bg-[#0a0f1d] flex-shrink-0">
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-cyan-950/80 border border-indigo-500/30 text-white shadow-xl relative overflow-hidden group">
+      <div className="p-3 pt-1 border-t border-slate-800/40 bg-[#0a0f1d] flex-shrink-0">
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950 via-slate-900 to-cyan-950/80 border border-indigo-500/30 text-white shadow-xl relative overflow-hidden group">
           <div className="flex items-center justify-between">
             <div className="text-xs font-bold leading-tight bg-gradient-to-r from-cyan-300 to-indigo-200 bg-clip-text text-transparent flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-cyan-400 inline" />
