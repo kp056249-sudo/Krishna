@@ -77,13 +77,11 @@ function getGeminiKeys(): string[] {
   return pool;
 }
 
-// Primary candidate Flash models (ordered by speed & free-tier availability)
+// Primary candidate Flash models (ordered by speed & verified availability)
 const FLASH_MODELS = [
   'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
   'gemini-3.6-flash',
-  'gemini-3.7-flash',
-  'gemini-3.8-flash'
+  'gemini-3.5-flash'
 ];
 
 // Short, smart, all-round system prompt enforcing accurate answers to ANY question
@@ -321,8 +319,8 @@ export async function processChatbotMessage(
     }
   ];
 
-  // 3. MULTI-KEY FAILOVER WITH HARD 4.8-SECOND OVERALL LATENCY BUDGET
-  const MAX_TOTAL_BUDGET_MS = 4800;
+  // 3. MULTI-KEY FAILOVER WITH 15-SECOND OVERALL LATENCY BUDGET
+  const MAX_TOTAL_BUDGET_MS = 15000;
   const allKeys = getGeminiKeys();
   const now = Date.now();
   const healthyKeys = allKeys.filter(k => (KEY_COOLDOWNS.get(k) || 0) < now);
@@ -333,12 +331,12 @@ export async function processChatbotMessage(
     const elapsed = Date.now() - startTime;
     const remainingTime = MAX_TOTAL_BUDGET_MS - elapsed;
 
-    // If remaining time is under 1.0s, break and immediately serve deterministic fallback (<5s guarantee)
-    if (remainingTime < 1000) {
+    // If remaining time is under 1.5s, break and immediately serve deterministic fallback
+    if (remainingTime < 1500) {
       break;
     }
 
-    const perKeyTimeout = Math.min(2500, remainingTime);
+    const perKeyTimeout = Math.min(10000, remainingTime);
     const apiKey = keys[keyIdx];
 
     for (const modelCandidate of FLASH_MODELS) {

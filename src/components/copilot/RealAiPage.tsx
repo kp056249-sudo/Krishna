@@ -7,9 +7,9 @@ import { ModalCard } from '../ui/modal-card';
 import { SemanticCacheHud } from './SemanticCacheHud';
 
 export const AI_MODELS = [
-  { id: 'gemini-2.5-flash', label: '2.5 Flash', title: 'Gemini 2.5 Flash (Ultra Fast)' },
-  { id: 'gemini-2.0-flash', label: '2.0 Flash', title: 'Gemini 2.0 Flash (Reasoning Core)' },
-  { id: 'gemini-1.5-flash', label: '1.5 Flash', title: 'Gemini 1.5 Flash (Standard)' },
+  { id: 'gemini-flash-lite-latest', label: 'Flash Lite', title: 'Gemini Flash Lite (Ultra Fast ~1.5s)' },
+  { id: 'gemini-3.6-flash', label: '3.6 Flash', title: 'Gemini 3.6 Flash (Flagship Core)' },
+  { id: 'gemini-3.5-flash', label: '3.5 Flash', title: 'Gemini 3.5 Flash (Deep Reasoning)' },
 ] as const;
 
 export type AiModelId = typeof AI_MODELS[number]['id'];
@@ -31,7 +31,7 @@ export const RealAiPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputPrompt, setInputPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<AiModelId>('gemini-2.5-flash');
+  const [selectedModel, setSelectedModel] = useState<AiModelId>('gemini-flash-lite-latest');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [attachedFileName, setAttachedFileName] = useState<string | null>(null);

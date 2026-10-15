@@ -670,7 +670,16 @@ NIYAM:
 
   const allKeys = getAllGeminiKeys();
   const primaryKeys = allKeys.slice(0, 5);
-  const candidateModels = ['gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-3.8-flash'];
+  const safeRequestedModel = modelRequested && !modelRequested.includes('2.5') && !modelRequested.includes('2.0') && !modelRequested.includes('1.5')
+    ? modelRequested
+    : 'gemini-flash-lite-latest';
+
+  const candidateModels = [
+    safeRequestedModel,
+    'gemini-flash-lite-latest',
+    'gemini-3.6-flash',
+    'gemini-3.5-flash'
+  ].filter((v, i, a) => a.indexOf(v) === i);
 
   for (let keyIdx = 0; keyIdx < primaryKeys.length; keyIdx++) {
     const apiKey = primaryKeys[keyIdx];
@@ -702,7 +711,7 @@ NIYAM:
         })();
 
         const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT_4S')), 4000)
+          setTimeout(() => reject(new Error('TIMEOUT_10S')), 10000)
         );
 
         const reply = await Promise.race([generatePromise, timeoutPromise]);

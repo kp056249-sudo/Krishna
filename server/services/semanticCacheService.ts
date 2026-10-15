@@ -58,7 +58,7 @@ export interface SemanticCacheMetrics {
 }
 
 const VECTOR_DIMENSIONS = 128;
-const DEFAULT_SIMILARITY_THRESHOLD = 0.88;
+const DEFAULT_SIMILARITY_THRESHOLD = 0.94;
 const DEFAULT_TTL_MS = 30 * 60 * 1000; // 30 minutes
 
 class SemanticVectorCacheService {
@@ -145,19 +145,19 @@ class SemanticVectorCacheService {
       {
         q: 'What is our current RTO rate and how can we reduce it?',
         r: 'Our live benchmark RTO rate is 8.5% across connected channels. The primary drivers are unverified Cash on Delivery (COD) orders in Tier-2/3 pincodes. Enable the automated WhatsApp 1-tap OTP defense in Recovery Center to cut RTO by an estimated 35-42%.',
-        m: 'gemini-2.5-flash',
+        m: 'gemini-flash-lite-latest',
         tok: 350
       },
       {
         q: 'How is Net Profit calculated in DataNexus?',
         r: 'Net Profit = Gross Revenue - COGS (Cost of Goods Sold) - Marketing Ad Spend - Forward Courier Fees - (RTO Rate × Reverse Shipping Surcharge ₹160) - Payment Gateway Gateway Ops Overhead (4.5%). All formulas are audited against real Razorpay remittances.',
-        m: 'gemini-2.5-flash',
+        m: 'gemini-flash-lite-latest',
         tok: 380
       },
       {
         q: 'What is the formula to reach 10 Crore Profit?',
         r: 'To generate ₹10 Crore Net Profit with an AOV of ₹1,850 and 26% COGS: maintain a minimum blended ROAS of 4.2x, cap RTO under 9%, and achieve ~4,800 daily orders across multi-channel Shopify & Amazon storefronts.',
-        m: 'gemini-2.5-flash',
+        m: 'gemini-flash-lite-latest',
         tok: 400
       }
     ];

@@ -25,9 +25,9 @@ export interface TriAgentDefinition {
 }
 
 const CANDIDATE_MODELS = [
+  'gemini-flash-lite-latest',
   'gemini-3.6-flash',
-  'gemini-3.7-flash',
-  'gemini-3.8-flash'
+  'gemini-3.5-flash'
 ];
 
 function getCleanKey(val?: string, fallback: string = ''): string {
@@ -49,7 +49,7 @@ export const TRI_AGENTS: Record<string, TriAgentDefinition> = {
     badge: 'Gemini Key 1 Active',
     primaryKey: KEY_1,
     fallbackKeys: [KEY_2, KEY_3],
-    model: 'gemini-2.5-flash',
+    model: 'gemini-flash-lite-latest',
     description: 'Autonomous monitor for COD refusal probabilities, pin code fraud clusters, and courier delivery SLAs.',
     specialization: ['COD Risk Classification', 'Address Anomaly Detection', 'Courier Recovery Protocols', 'Reverse Logistics Shield']
   },
@@ -60,7 +60,7 @@ export const TRI_AGENTS: Record<string, TriAgentDefinition> = {
     badge: 'Gemini Key 2 Active',
     primaryKey: KEY_2,
     fallbackKeys: [KEY_3, KEY_1],
-    model: 'gemini-2.5-flash',
+    model: 'gemini-flash-lite-latest',
     description: 'Guards net realized contribution margin against phantom GMV, reverse freight drag (₹210 penalty), and ad leakage.',
     specialization: ['Net Realized Profit Formula', 'ROAS Breakeven Thresholds', 'Gateway Fee Reconciliation', 'Logistics Freight Audits']
   },
@@ -71,7 +71,7 @@ export const TRI_AGENTS: Record<string, TriAgentDefinition> = {
     badge: 'Gemini Key 3 Active',
     primaryKey: KEY_3,
     fallbackKeys: [KEY_1, KEY_2],
-    model: 'gemini-2.5-flash',
+    model: 'gemini-flash-lite-latest',
     description: 'Synthesizes multi-source store metrics into AST-safe SQL queries, warehouse rebalancing, and growth roadmaps.',
     specialization: ['AST-Guarded SQL Generation', '14-Day Demand Projections', 'Inventory Run-Out Defense', 'Executive Playbooks']
   }

@@ -32,9 +32,9 @@ function FigmaIcon({ className }: { className?: string }) {
 
 // REAL PRODUCTION MODELS LIST CONNECTED TO REAL GEMINI POOL
 export const models: Model[] = [
-  { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', description: 'Real-time High Throughput', icon: <Zap className="size-4 text-blue-400" />, badge: 'Active' },
-  { id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash', description: 'Advanced Deep Reasoning', icon: <Sparkles className="size-4 text-purple-400" />, badge: 'Pro' },
-  { id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash', description: 'Flagship Intelligence Core', icon: <Brain className="size-4 text-cyan-400" />, badge: 'Latest' },
+  { id: 'gemini-flash-lite-latest', name: 'Gemini Flash Lite', description: 'Real-time Ultra High Throughput (~1.5s)', icon: <Zap className="size-4 text-blue-400" />, badge: 'Ultra Fast' },
+  { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', description: 'Advanced Deep Reasoning & Code', icon: <Sparkles className="size-4 text-purple-400" />, badge: 'Flagship' },
+  { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', description: 'Enterprise Balanced Intelligence', icon: <Brain className="size-4 text-cyan-400" />, badge: 'Active' },
 ]
 
 function ModelSelector({ selectedModel = 'gemini-3.6-flash', onModelChange }: { 

@@ -34,7 +34,7 @@ export async function askDataNexusCopilotWithMeta(
   const res = await api.post('/api/ai/chat', { prompt: userPrompt, model });
   return {
     answer: res.answer || (res.error ? `⚠️ ${res.error}` : "I don't have that data in your database yet."),
-    modelUsed: res.modelUsed || model || 'gemini-2.5-flash',
+    modelUsed: res.modelUsed || model || 'gemini-flash-lite-latest',
     keyUsed: res.keyUsed || 1,
     cached: res.cached,
     responseTimeMs: res.responseTimeMs,
