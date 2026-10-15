@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { StoreAccount, OrderItem } from '../../types';
+import { MultiAgentOrchestratorView } from '../ai/MultiAgentOrchestratorView';
 
 interface AiCopilotChatProps {
   stores?: StoreAccount[];
@@ -578,6 +579,9 @@ export const AiCopilotChat: React.FC<AiCopilotChatProps> = ({
           </div>
         )}
       </div>
+ 
+      {/* 🤖 Autonomous LangGraph / ReAct Multi-Agent Orchestrator (Phase 3 AI Core) */}
+      <MultiAgentOrchestratorView />
 
       {/* Autonomous Multi-Agent Fleet Grid (4 Sentinel Agents) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

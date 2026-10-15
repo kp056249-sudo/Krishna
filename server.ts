@@ -36,6 +36,8 @@ import * as triEngine from './server/services/autonomousTriEngine.js';
 import { processChatbotMessage } from './server/services/chatbotService.js';
 import { duckdbEngine } from './server/duckdbEngine.js';
 import { semanticCacheService } from './server/services/semanticCacheService.js';
+import { mlEngineService } from './server/services/mlEngineService.js';
+import { agentOrchestratorService } from './server/services/agentOrchestratorService.js';
 import {
   initTelegramBot,
   getTelegramBotStatus,
@@ -1014,6 +1016,83 @@ app.get('/api/copilot/semantic-cache/metrics', async (_req: Request, res: Respon
 app.post('/api/copilot/semantic-cache/clear', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
   semanticCacheService.clear();
   res.json({ success: true, message: 'Semantic vector cache successfully cleared.' });
+});
+
+// -----------------------------------------------------------------------------
+// STATISTICAL ML CORE & MODEL OBSERVABILITY (PHASE 2)
+// -----------------------------------------------------------------------------
+app.post('/api/ml/train', async (req: Request, res: Response) => {
+  try {
+    const { modelType, learningRate, epochs, regularizationL2, testSplitRatio } = req.body || {};
+    const result = await mlEngineService.train({
+      modelType: modelType || 'logistic_regression',
+      learningRate: Number(learningRate) || 0.05,
+      epochs: Math.min(500, Math.max(5, Number(epochs) || 50)),
+      regularizationL2: Number(regularizationL2) || 0.01,
+      testSplitRatio: Number(testSplitRatio) || 0.20,
+    });
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/ml/predict-risk', async (req: Request, res: Response) => {
+  try {
+    const { orderTotal, paymentMode, deliveryZone, addressQualityScore, slaDelayDays } = req.body || {};
+    const explanation = mlEngineService.explainPrediction({
+      orderTotal: Number(orderTotal) || 2499,
+      paymentMode: paymentMode === 'PREPAID' ? 'PREPAID' : 'COD',
+      deliveryZone: deliveryZone || 'Tier 2',
+      addressQualityScore: addressQualityScore !== undefined ? Number(addressQualityScore) : 0.78,
+      slaDelayDays: slaDelayDays !== undefined ? Number(slaDelayDays) : 1.4,
+    });
+    res.json({ success: true, ...explanation });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/ml/forecast', async (_req: Request, res: Response) => {
+  try {
+    const forecast = mlEngineService.generateForecast(14);
+    res.json({ success: true, ...forecast });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/ml/drift-audit', async (_req: Request, res: Response) => {
+  try {
+    const drift = mlEngineService.computeDriftAudit();
+    res.json({ success: true, ...drift });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// -----------------------------------------------------------------------------
+// MULTI-AGENT AUTONOMOUS ORCHESTRATOR (PHASE 3)
+// -----------------------------------------------------------------------------
+app.post('/api/agents/execute', async (req: Request, res: Response) => {
+  try {
+    const { prompt } = req.body || {};
+    if (!prompt || typeof prompt !== 'string') {
+      return res.status(400).json({ success: false, error: 'Prompt is required' });
+    }
+    const result = await agentOrchestratorService.executeWorkflow(prompt);
+    res.json({ success: true, ...result });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/agents/history', async (_req: Request, res: Response) => {
+  try {
+    res.json({ success: true, history: agentOrchestratorService.getHistory() });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // -----------------------------------------------------------------------------
