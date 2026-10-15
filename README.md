@@ -164,6 +164,8 @@ In senior technical interviews, architectural transparency is paramount. The fol
 
 ## 5. Candidate Interview Cheatsheet (₹1 Crore CTC Technical Defense)
 
+> 📖 **Comprehensive Field Manual & Resume Bullets**: For the complete 20-question deep dive, role-specific STAR resume bullet points, and 5-minute live demo walkthrough, see [INTERVIEW.md](INTERVIEW.md).
+
 When interviewing for Senior Data Analyst, Lead Data Scientist, Staff AI Engineer, or ML Engineer positions, use these architectural talking points to demonstrate technical mastery:
 
 ### Q1: Why did you embed DuckDB instead of querying PostgreSQL or AlaSQL for analytics?
